@@ -1,6 +1,6 @@
-import { matchString, between, any, rest } from '../'
+import { matchString, between, any, rest } from '../..'
 
-import { match, when, otherwise, guard } from './'
+import { match, when, otherwise, guard } from '..'
 
 export default (
   handleData: (body: any, rest: any) => void,
@@ -16,8 +16,8 @@ export default (
     }
 
     handle(req: any, res: object) {
-      match(
-        when({ status: 200, body: any(), rest }, ({ body, rest }) =>
+      match(res)(
+        when({ status: 200, body: any, rest }, ({ body, rest }) =>
           handleData(body, rest)
         ),
         when(
@@ -32,6 +32,6 @@ export default (
           }
         ),
         otherwise(() => throwSomething())
-      )(res)
+      )
     }
   }

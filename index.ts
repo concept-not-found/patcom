@@ -53,7 +53,17 @@ export type Matchable<T> = T extends undefined
   ? {
       [Key in keyof T]: T[Key] extends Matcher<infer S> ? S : Matchable<T[Key]>
     }
+  : T extends RegExp
+  ? string
   : T
+
+type UnionMatchable<T extends any[]> = T extends [infer HEAD, ...infer TAIL]
+  ? Matchable<HEAD> | UnionMatchable<TAIL>
+  : never
+
+type IntersectMatchable<T extends any[]> = T extends [infer HEAD, ...infer TAIL]
+  ? Matchable<HEAD> & IntersectMatchable<TAIL>
+  : never
 
 export function matchArray<T extends any[]>(
   expected?: T
@@ -165,14 +175,13 @@ export const matchNumber: (expected?: number) => Matcher<number> =
   matchIdentical
 export const matchString: (expected?: string) => Matcher<string> =
   matchIdentical
-export function any(): Matcher<any> {
-  return (value: any) => {
-    return {
-      matched: true,
-      value,
-    }
+export const any: Matcher<any> = (value: any) => {
+  return {
+    matched: true,
+    value,
   }
 }
+
 export const rest: Matcher<object> = (value: any) => {
   return {
     matched: true,
@@ -192,9 +201,36 @@ export function between(lower: number, upper: number): Matcher<number> {
   }
 }
 
+export function matchRegExp(expected: RegExp): Matcher<string> {
+  return (value: any) => {
+    if (typeof value === 'string' || value instanceof String) {
+      const regexMatchResult = value.match(expected)
+      if (regexMatchResult) {
+        return {
+          matched: true,
+          value: value as string,
+        }
+      }
+      return {
+        matched: false,
+        expected,
+        regexMatchResult,
+      }
+    }
+    return {
+      matched: false,
+      expected,
+      typeofValue: typeof value,
+    }
+  }
+}
+
 export function fromMatchable<T>(matchable: T): Matcher<Matchable<T>> {
   if (Array.isArray(matchable)) {
     return matchArray(matchable)
+  }
+  if (matchable instanceof RegExp) {
+    return matchRegExp(matchable) as Matcher<Matchable<T>>
   }
   switch (typeof matchable) {
     case 'boolean':
@@ -207,4 +243,53 @@ export function fromMatchable<T>(matchable: T): Matcher<Matchable<T>> {
       >
   }
   return matchable as unknown as Matcher<Matchable<T>>
+}
+
+export function oneOf<T extends any[]>(
+  ...matchables: T
+): Matcher<UnionMatchable<T>> {
+  return (value: any) => {
+    for (const matchable of matchables) {
+      const matcher = fromMatchable(matchable)
+      const result = matcher(value)
+      if (result.matched) {
+        return result
+      }
+    }
+    return unmatched
+  }
+}
+
+export function allOf<T extends any[]>(
+  ...matchables: T
+): Matcher<IntersectMatchable<T>> {
+  return (value: any) => {
+    for (const matchable of matchables) {
+      const matcher = fromMatchable(matchable)
+      const result = matcher(value)
+      if (!result.matched) {
+        return {
+          matched: false,
+          expected: matchables,
+          failed: result,
+        }
+      }
+    }
+    return {
+      matched: true,
+      value,
+    }
+  }
+}
+
+export function matchProp<T extends object>(expected: string): Matcher<T> {
+  return (value: T) => {
+    if (expected in value) {
+      return {
+        matched: true,
+        value,
+      }
+    }
+    return unmatched
+  }
 }

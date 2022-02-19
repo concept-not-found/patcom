@@ -1,6 +1,7 @@
 import {
   ValueMapper,
   Matchable,
+  Result,
   Matcher,
   fromMatchable,
   unmatched,
@@ -48,8 +49,9 @@ export function guard<T>(
   }
 }
 
-export function match<T>(...clauses: Clause<any, T>[]): Matcher<T> {
-  return (value: any) => {
+export const match =
+  (value: any) =>
+  <T>(...clauses: Clause<any, T>[]): Result<T> => {
     for (const clause of clauses) {
       const result = clause(value)
       if (result.matched) {
@@ -58,4 +60,3 @@ export function match<T>(...clauses: Clause<any, T>[]): Matcher<T> {
     }
     return unmatched
   }
-}
