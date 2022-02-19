@@ -75,18 +75,28 @@ export function matchArray<T extends any[]>(
         value,
       }
     }
-    if (!Array.isArray(value) || expected.length !== value.length) {
+    if (!Array.isArray(value)) {
       return unmatched
     }
     for (const [index, element] of expected.entries()) {
       const matcher: Matcher<any> = fromMatchable(element)
+      if (matcher === rest) {
+        return {
+          matched: true,
+          value,
+        }
+      }
       if (!matcher(value[index]).matched) {
         return unmatched
       }
     }
-    return {
-      matched: true,
-      value: value as Matchable<T>,
+    if (value.length === expected.length) {
+      return {
+        matched: true,
+        value,
+      }
+    } else {
+      return unmatched
     }
   }
 }
@@ -147,7 +157,7 @@ export function matchObject<T extends object>(
     }
     return {
       matched: true,
-      value: matchedValue as Matchable<Matchable<T>>,
+      value: matchedValue,
     }
   }
 }
@@ -173,6 +183,15 @@ export const matchBoolean: (expected?: boolean) => Matcher<boolean> =
   matchIdentical
 export const matchNumber: (expected?: number) => Matcher<number> =
   matchIdentical
+export const matchNonEmptyString = (value: string): Result<string> => {
+  if (typeof value === 'string') {
+    return {
+      matched: true,
+      value,
+    }
+  }
+  return unmatched
+}
 export const matchString: (expected?: string) => Matcher<string> =
   matchIdentical
 export const any: Matcher<any> = (value: any) => {
@@ -182,11 +201,10 @@ export const any: Matcher<any> = (value: any) => {
   }
 }
 
-export const rest: Matcher<object> = (value: any) => {
-  return {
-    matched: true,
-    value,
-  }
+export const rest: Matcher<any> = () => {
+  throw new Error(
+    'rest is a marker matcher and does actually match anything. it is intended to used within matchArray and matchObject'
+  )
 }
 
 export function between(lower: number, upper: number): Matcher<number> {
@@ -292,4 +310,20 @@ export function matchProp<T extends object>(expected: string): Matcher<T> {
     }
     return unmatched
   }
+}
+
+export const matchEmpty = <T extends object | any[]>(value: T): Result<T> => {
+  if (Array.isArray(value) && value.length === 0) {
+    return {
+      matched: true,
+      value,
+    }
+  }
+  if (Object.keys(value).length === 0) {
+    return {
+      matched: true,
+      value,
+    }
+  }
+  return unmatched
 }
