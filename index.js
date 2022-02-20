@@ -97,13 +97,14 @@ export function fromMatchable(matchable) {
 export function matchArray(expected) {
   return (value) => {
     if (expected === undefined) {
-      return {
-        matched: true,
-        value,
+      if (Array.isArray(value)) {
+        return {
+          matched: true,
+          value,
+        }
+      } else {
+        return unmatched
       }
-    }
-    if (!Array.isArray(value)) {
-      return unmatched
     }
     for (const [index, element] of expected.entries()) {
       const matcher = fromMatchable(element)
@@ -187,27 +188,8 @@ export function matchObject(expected) {
   }
 }
 
-export function matchIdentical(expected) {
-  return (value) => {
-    if (expected === undefined) {
-      return {
-        matched: true,
-        value,
-      }
-    }
-    if (expected === value) {
-      return {
-        matched: true,
-        value,
-      }
-    }
-    return unmatched
-  }
-}
-export const matchBoolean = matchIdentical
-export const matchNumber = matchIdentical
-export const matchNonEmptyString = (value) => {
-  if (typeof value === 'string') {
+export const matchIdentical = (expected) => (value) => {
+  if (expected === undefined || expected === value) {
     return {
       matched: true,
       value,
@@ -215,7 +197,66 @@ export const matchNonEmptyString = (value) => {
   }
   return unmatched
 }
-export const matchString = matchIdentical
+
+export const matchBoolean = (expected) => (value) => {
+  if (
+    (expected === undefined && typeof value === 'boolean') ||
+    expected === value
+  ) {
+    return {
+      matched: true,
+      value,
+    }
+  }
+  return unmatched
+}
+
+export const matchNumber = (expected) => (value) => {
+  if (
+    (expected === undefined && typeof value === 'number') ||
+    expected === value
+  ) {
+    return {
+      matched: true,
+      value,
+    }
+  }
+  return unmatched
+}
+export const matchBigInt = (expected) => (value) => {
+  if (
+    (expected === undefined && typeof value === 'bigint') ||
+    expected === value
+  ) {
+    return {
+      matched: true,
+      value,
+    }
+  }
+  return unmatched
+}
+export const matchNonEmptyString = (value) => {
+  if (typeof value === 'string' || value instanceof String) {
+    return {
+      matched: true,
+      value,
+    }
+  }
+  return unmatched
+}
+export const matchString = (expected) => (value) => {
+  if (
+    (expected === undefined && typeof value === 'string') ||
+    value instanceof String ||
+    expected === value
+  ) {
+    return {
+      matched: true,
+      value,
+    }
+  }
+  return unmatched
+}
 export const any = (value) => {
   return {
     matched: true,
