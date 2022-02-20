@@ -21,6 +21,9 @@
     "prettier": "2.5.1"
   },
   "jest": {
-    "transform": {}
+    "transform": {},
+    "clearMocks": true,
+    "resetMocks": true,
+    "restoreMocks": true
   }
 }
