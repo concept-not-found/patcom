@@ -150,7 +150,7 @@ export function matchObject(expected) {
         restKey = key
         continue
       }
-      if (!matcher(value[key]).matched) {
+      if (key in value && !matcher(value[key]).matched) {
         unmatchedKeys.push(key)
         continue
       }
@@ -282,6 +282,18 @@ export const rest = () => {
 export function between(lower, upper) {
   return (value) => {
     if (typeof value === 'number' && lower <= value && value < upper) {
+      return {
+        matched: true,
+        value,
+      }
+    }
+    return unmatched
+  }
+}
+
+export function gte(expected) {
+  return (value) => {
+    if (typeof value === 'number' && expected <= value) {
       return {
         matched: true,
         value,
