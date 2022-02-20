@@ -1,6 +1,6 @@
 import { expectMatched } from './test-utils.js'
 
-import { matchObject, rest } from './index.js'
+import { matchObject, defined, rest } from './index.js'
 
 describe('matchObject', () => {
   test('matched identical literal object', () => {
@@ -12,6 +12,12 @@ describe('matchObject', () => {
       y: 2,
       z: 3,
     })
+  })
+
+  test('unmatched empty object with expected field', () => {
+    const matcher = matchObject({ x: defined })
+    const result = matcher({})
+    expect(result.matched).toBe(false)
   })
 
   test('rest matcher collect remaining fields', () => {

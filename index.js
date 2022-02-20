@@ -150,7 +150,7 @@ export function matchObject(expected) {
         restKey = key
         continue
       }
-      if (key in value && !matcher(value[key]).matched) {
+      if (!(key in value) || !matcher(value[key]).matched) {
         unmatchedKeys.push(key)
         continue
       }
