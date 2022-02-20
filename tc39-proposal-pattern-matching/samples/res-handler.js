@@ -1,6 +1,6 @@
 import { matchString, between, any, rest } from '../../index.js'
 
-import { match, when, otherwise, guard } from '../index.js'
+import { match, when, otherwise } from '../index.js'
 
 export default (handleData, handleRedirect, retry, throwSomething) =>
   class RetryableHandler {
@@ -18,7 +18,8 @@ export default (handleData, handleRedirect, retry, throwSomething) =>
           ({ destination: url }) => handleRedirect(url)
         ),
         when(
-          guard({ status: 500 }, () => !this.hasRetried),
+          { status: 500 },
+          () => !this.hasRetried,
           () => {
             retry(req)
             this.hasRetried = true

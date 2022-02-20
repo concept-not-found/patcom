@@ -4,31 +4,31 @@ import {
   mapMatchedMatcher,
   asMatchedMapper,
   fromMatchable,
-  mapMatcher,
   unmatched,
+  mapResultMatcher,
 } from '../index.js'
 
-export function when(matchable, mapperable) {
+export function when(matchable, ...mapperables) {
   const matcher = fromMatchable(matchable)
-  const matchedMapper = asMatchedMapper(mapperable)
-  return mapMatchedMatcher(matchedMapper)(matcher)
-}
+  const matchedMappers = mapperables.map(asMatchedMapper)
 
-export function otherwise(mapperable) {
-  const matchedMapper = asMatchedMapper(mapperable)
-  return mapMatchedMatcher(matchedMapper)(any)
-}
-
-export function guard(matchable, predicate) {
-  const matcher = fromMatchable(matchable)
-  const predicateMatcher = mapMatcher(predicate)(matcher)
-  return (value) => {
-    const result = predicateMatcher(value)
-    if (result.matched && result.value) {
-      return result
+  const guards = matchedMappers.slice(0, -1)
+  const guardMatcher = mapResultMatcher((result) => {
+    if (result.matched) {
+      const allGuardsPassed = guards.every((guard) => guard(result).value)
+      if (allGuardsPassed) {
+        return result
+      }
     }
     return unmatched
-  }
+  })(matcher)
+
+  const matchedMapper = matchedMappers[matchedMappers.length - 1]
+  return mapMatchedMatcher(matchedMapper)(guardMatcher)
+}
+
+export function otherwise(...mapperables) {
+  return when(any, ...mapperables)
 }
 
 export const match =
