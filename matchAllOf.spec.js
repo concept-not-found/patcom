@@ -1,6 +1,6 @@
-import { expectMatched } from './test-utils'
+import { expectMatched } from './test-utils.js'
 
-import { allOf, matchProp } from '.'
+import { allOf, matchProp } from './index.js'
 
 describe('allOf', () => {
   test('matched both RegExp', () => {
@@ -12,8 +12,7 @@ describe('allOf', () => {
 
   test('matched string with prop', () => {
     const matcher = allOf(/Eve/, matchProp('evil'))
-    type EvilString = string & { evil: boolean }
-    const input: Partial<EvilString> = new String('Eve')
+    const input = new String('Eve')
     input.evil = true
     const result = matcher(input)
     expectMatched(result)

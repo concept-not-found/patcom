@@ -1,4 +1,6 @@
-import AdventureCommand, { Item } from './adventure-command'
+import { jest } from '@jest/globals'
+
+import AdventureCommand from './adventure-command'
 
 describe('tc39-proposal-pattern-matching', () => {
   describe('adventure command sample', () => {
@@ -43,9 +45,9 @@ describe('tc39-proposal-pattern-matching', () => {
         handleTakeItem,
         handleOtherwise
       )
-      const ball: Partial<Item> = new String('something ball')
+      const ball = new String('something ball')
       ball.weight = 69
-      matcher(['take', ball as Item])
+      matcher(['take', ball])
       expect(handleTakeItem).toHaveBeenNthCalledWith(1, ball)
       expect(handleGoDir).not.toHaveBeenCalled()
       expect(handleOtherwise).not.toHaveBeenCalled()

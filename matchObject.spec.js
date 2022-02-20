@@ -1,6 +1,6 @@
-import { expectMatched } from './test-utils'
+import { expectMatched } from './test-utils.js'
 
-import { matchObject, rest } from '.'
+import { matchObject, rest } from './index.js'
 
 describe('matchObject', () => {
   test('matched identical literal object', () => {

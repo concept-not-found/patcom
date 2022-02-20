@@ -1,1 +1,2 @@
-dist/comparison/
+node_modules/
+dist/

@@ -1,6 +1,6 @@
-import { expectMatched } from './test-utils'
+import { expectMatched } from './test-utils.js'
 
-import { matchArray, rest } from '.'
+import { matchArray, rest } from './index.js'
 
 describe('matchArray', () => {
   test('matched identical literal array', () => {

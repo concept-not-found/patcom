@@ -1,4 +1,6 @@
-import ArrayLength from './array-length'
+import { jest } from '@jest/globals'
+
+import ArrayLength from './array-length.js'
 
 describe('tc39-proposal-pattern-matching', () => {
   describe('array length sample', () => {

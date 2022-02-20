@@ -1,21 +1,14 @@
-import { matchString, between, any, rest } from '../..'
+import { matchString, between, any, rest } from '../../index.js'
 
-import { match, when, otherwise, guard } from '..'
+import { match, when, otherwise, guard } from '../index.js'
 
-export default (
-  handleData: (body: any, rest: any) => void,
-  handleRedirect: (url: string) => void,
-  retry: (req: any) => void,
-  throwSomething: () => void
-) =>
+export default (handleData, handleRedirect, retry, throwSomething) =>
   class RetryableHandler {
-    hasRetried: boolean
-
     constructor() {
       this.hasRetried = false
     }
 
-    handle(req: any, res: object) {
+    handle(req, res) {
       match(res)(
         when({ status: 200, body: any, rest }, ({ body, rest }) =>
           handleData(body, rest)
