@@ -1,28 +1,30 @@
-import { asMatchedMapper, fromMatchable, unmatched } from '../index.js'
+import {
+  any,
+  oneOf,
+  mapMatchedMatcher,
+  asMatchedMapper,
+  fromMatchable,
+  mapMatcher,
+  unmatched,
+} from '../index.js'
 
 export function when(matchable, mapperable) {
   const matcher = fromMatchable(matchable)
-  const whenMatcher = matcher
-  whenMatcher.onMatch = asMatchedMapper(mapperable)
-  return whenMatcher
+  const matchedMapper = asMatchedMapper(mapperable)
+  return mapMatchedMatcher(matchedMapper)(matcher)
 }
 
 export function otherwise(mapperable) {
-  const otherwiseMatcher = (value) => {
-    return {
-      matched: true,
-      value,
-    }
-  }
-  otherwiseMatcher.onMatch = asMatchedMapper(mapperable)
-  return otherwiseMatcher
+  const matchedMapper = asMatchedMapper(mapperable)
+  return mapMatchedMatcher(matchedMapper)(any)
 }
 
 export function guard(matchable, predicate) {
   const matcher = fromMatchable(matchable)
+  const predicateMatcher = mapMatcher(predicate)(matcher)
   return (value) => {
-    const result = matcher(value)
-    if (result.matched && predicate(result.value)) {
+    const result = predicateMatcher(value)
+    if (result.matched && result.value) {
       return result
     }
     return unmatched
@@ -32,11 +34,6 @@ export function guard(matchable, predicate) {
 export const match =
   (value) =>
   (...clauses) => {
-    for (const clause of clauses) {
-      const result = clause(value)
-      if (result.matched) {
-        return clause.onMatch(result).value
-      }
-    }
-    return
+    const result = oneOf(...clauses)(value)
+    return result.value
   }

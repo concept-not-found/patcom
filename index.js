@@ -1,29 +1,18 @@
-export function mapMatched(mapper) {
+export const unmatched = {
+  matched: false,
+}
+
+export function mapMatched(valueMapper) {
   const matchedMapper = (matched) => {
     return {
       matched: true,
-      value: mapper(matched.value),
+      value: valueMapper(matched.value),
     }
   }
   matchedMapper.type = 'matched'
   return matchedMapper
 }
 
-export const unmatched = {
-  matched: false,
-}
-
-export function mapResult(mapper) {
-  const resultMapper = (result) => {
-    if (result.matched) {
-      return mapMatched(mapper)(result)
-    } else {
-      return result
-    }
-  }
-  resultMapper.type = 'result'
-  return resultMapper
-}
 export function mapMatchedResult(matchedMapper) {
   const resultMapper = (result) => {
     if (result.matched) {
@@ -36,11 +25,22 @@ export function mapMatchedResult(matchedMapper) {
   return resultMapper
 }
 
-export function mapMatcher(mapper) {
-  const matcherMapper = (matcher) => (value) =>
-    mapResult(mapper)(matcher(value))
+export function mapResult(valueMapper) {
+  return mapMatchedResult(mapMatched(valueMapper))
+}
+
+export function mapResultMatcher(resultMapper) {
+  const matcherMapper = (matcher) => (value) => resultMapper(matcher(value))
   matcherMapper.type = 'matcher'
   return matcherMapper
+}
+
+export function mapMatchedMatcher(matchedMapper) {
+  return mapResultMatcher(mapMatchedResult(matchedMapper))
+}
+
+export function mapMatcher(valueMapper) {
+  return mapResultMatcher(mapResult(valueMapper))
 }
 
 export function asResultMapper(mapperable) {
