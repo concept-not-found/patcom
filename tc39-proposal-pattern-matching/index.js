@@ -35,8 +35,8 @@ export const match =
     for (const clause of clauses) {
       const result = clause(value)
       if (result.matched) {
-        return clause.onMatch(result)
+        return clause.onMatch(result).value
       }
     }
-    return unmatched
+    return
   }
