@@ -306,6 +306,8 @@ export function oneOf(...matchables) {
       value[Symbol.iterator]
     ) {
       resetValue = cachedGenerator(value)
+    } else if (typeof value === 'object') {
+      value = cachedProperties(value)
     }
     for (const matchable of matchables) {
       if (resetValue) {
@@ -319,6 +321,18 @@ export function oneOf(...matchables) {
     }
     return unmatched
   }
+}
+
+export function cachedProperties(source) {
+  const cache = {}
+  return new Proxy(source, {
+    get(target, prop) {
+      if (!cache[prop]) {
+        cache[prop] = source[prop]
+      }
+      return cache[prop]
+    },
+  })
 }
 
 export function cachedGenerator(source) {
