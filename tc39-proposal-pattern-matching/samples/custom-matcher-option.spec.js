@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals'
 
-import CustomMatcher, { Option } from './custom-matcher.js'
+import CustomMatcher, { Option } from './custom-matcher-option.js'
 
 describe('tc39-proposal-pattern-matching', () => {
   describe('customer matcher sample', () => {

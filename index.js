@@ -1,3 +1,5 @@
+export const matcher = Symbol('matcher')
+
 export const unmatched = {
   matched: false,
 }
@@ -32,6 +34,9 @@ export const mapMatcher = (valueMapper) =>
 export function fromMatchable(matchable) {
   if (matchable === undefined) {
     return any
+  }
+  if (matchable[matcher]) {
+    return matchable[matcher]
   }
   if (Array.isArray(matchable)) {
     return matchArray(matchable)

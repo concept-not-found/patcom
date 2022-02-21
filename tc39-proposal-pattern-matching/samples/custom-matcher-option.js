@@ -1,3 +1,5 @@
+import { matcher } from '../../index.js'
+
 import { match, when } from '../index.js'
 
 const Exception = Error
@@ -22,16 +24,16 @@ export class Option {
   }
 }
 
-Option.matchSome = (val) => ({
+Option.Some[matcher] = (val) => ({
   matched: val instanceof Option && val.hasValue,
   value: val instanceof Option && val.hasValue && val.value,
 })
-Option.matchNone = (val) => ({
+Option.None[matcher] = (val) => ({
   matched: val instanceof Option && !val.hasValue,
 })
 
 export default (result) =>
   match(result)(
-    when(Option.matchSome, (val) => console.log(val)),
-    when(Option.matchNone, () => console.log('none'))
+    when(Option.Some, (val) => console.log(val)),
+    when(Option.None, () => console.log('none'))
   )
