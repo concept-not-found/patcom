@@ -2,81 +2,37 @@ export const unmatched = {
   matched: false,
 }
 
-export function mapMatched(valueMapper) {
-  const matchedMapper = (matched) => {
-    return {
-      matched: true,
-      value: valueMapper(matched.value),
-    }
-  }
-  matchedMapper.type = 'matched'
-  return matchedMapper
-}
-
-export function mapMatchedResult(matchedMapper) {
-  const resultMapper = (result) => {
-    if (result.matched) {
-      return matchedMapper(result)
-    } else {
-      return result
-    }
-  }
-  resultMapper.type = 'result'
-  return resultMapper
-}
-
-export function mapResult(valueMapper) {
-  return mapMatchedResult(mapMatched(valueMapper))
-}
-
-export function mapResultMatcher(resultMapper) {
-  const matcherMapper = (matcher) => (value) => resultMapper(matcher(value))
-  matcherMapper.type = 'matcher'
-  return matcherMapper
-}
-
-export function mapMatchedMatcher(matchedMapper) {
-  return mapResultMatcher(mapMatchedResult(matchedMapper))
-}
-
-export function mapMatcher(valueMapper) {
-  return mapResultMatcher(mapResult(valueMapper))
-}
-
-export function asResultMapper(mapperable) {
-  switch (mapperable.type) {
-    case 'matcher':
-      throw new Error('cannot convert matcher mapper to result mapper')
-    case 'result': {
-      return mapperable
-    }
-    case 'matched': {
-      const matchedMapper = mapperable
-      return mapMatchedResult(matchedMapper)
-    }
-    case 'value':
-    default: {
-      const valueMapper = mapperable
-      return mapResult(valueMapper)
-    }
+export const mapMatched = (valueMapper) => (result) => {
+  return {
+    ...result,
+    value: valueMapper(result.value, result),
   }
 }
 
-export function asMatchedMapper(mapperable) {
-  switch (mapperable.type) {
-    case 'matched': {
-      const matchedMapper = mapperable
-      return matchedMapper
-    }
-    case 'value':
-    default: {
-      const valueMapper = mapperable
-      return mapMatched(valueMapper)
-    }
+export const mapMatchedResult = (matchedMapper) => (result) => {
+  if (result.matched) {
+    return matchedMapper(result)
+  } else {
+    return result
   }
 }
+
+export const mapResult = (valueMapper) =>
+  mapMatchedResult(mapMatched(valueMapper))
+
+export const mapResultMatcher = (resultMapper) => (matcher) => (value) =>
+  resultMapper(matcher(value))
+
+export const mapMatchedMatcher = (matchedMapper) =>
+  mapResultMatcher(mapMatchedResult(matchedMapper))
+
+export const mapMatcher = (valueMapper) =>
+  mapResultMatcher(mapResult(valueMapper))
 
 export function fromMatchable(matchable) {
+  if (matchable === undefined) {
+    return any
+  }
   if (Array.isArray(matchable)) {
     return matchArray(matchable)
   }
@@ -96,32 +52,45 @@ export function fromMatchable(matchable) {
 
 export function matchArray(expected) {
   return (value) => {
+    if (value === undefined || !value[Symbol.iterator]) {
+      return unmatched
+    }
     if (expected === undefined) {
-      if (Array.isArray(value)) {
-        return {
-          matched: true,
-          value,
-        }
-      } else {
-        return unmatched
+      if (!Array.isArray(value)) {
+        value = [...value]
       }
-    }
-    for (const [index, element] of expected.entries()) {
-      const matcher = fromMatchable(element)
-      if (matcher === rest) {
-        return {
-          matched: true,
-          value,
-        }
-      }
-      if (!matcher(value[index]).matched) {
-        return unmatched
-      }
-    }
-    if (value.length === expected.length) {
       return {
         matched: true,
         value,
+      }
+    }
+    const iterator = value[Symbol.iterator]()
+    const readValues = []
+    for (const [index, element] of expected.entries()) {
+      const matcher = fromMatchable(element)
+      if (matcher === rest) {
+        if (!Array.isArray(value)) {
+          value = [...readValues, ...iterator]
+        }
+        return {
+          matched: true,
+          value,
+        }
+      }
+      const { value: iteratorValue, done } = iterator.next()
+      if (done) {
+        return unmatched
+      }
+      readValues.push(iteratorValue)
+      if (matcher(iteratorValue).matched) {
+        continue
+      }
+      return unmatched
+    }
+    if (iterator.next().done) {
+      return {
+        matched: true,
+        value: readValues,
       }
     } else {
       return unmatched
@@ -327,21 +296,21 @@ export function matchRegExp(expected) {
     }
   }
 }
-export function extractMatchedRegExp(valueMapper) {
-  const matchedMapper = (result) => {
-    const { matchedRegExp } = result
-    return {
-      matched: true,
-      value: valueMapper(matchedRegExp),
-    }
-  }
-  matchedMapper.type = 'matched'
-  return matchedMapper
-}
 
 export function oneOf(...matchables) {
   return (value) => {
+    let resetValue
+    if (
+      typeof value !== 'string' &&
+      !Array.isArray(value) &&
+      value[Symbol.iterator]
+    ) {
+      resetValue = cachedGenerator(value)
+    }
     for (const matchable of matchables) {
+      if (resetValue) {
+        value = resetValue()
+      }
       const matcher = fromMatchable(matchable)
       const result = matcher(value)
       if (result.matched) {
@@ -349,6 +318,30 @@ export function oneOf(...matchables) {
       }
     }
     return unmatched
+  }
+}
+
+export function cachedGenerator(source) {
+  const previous = []
+  let sourceIndex = 0
+  let sourceDone = false
+  return function* reset() {
+    let index = 0
+    while (true) {
+      if (index === sourceIndex) {
+        if (sourceDone) {
+          return
+        }
+        const { value, done } = source.next()
+        if (done) {
+          sourceDone = true
+          return
+        }
+        previous.push(value)
+        sourceIndex += 1
+      }
+      yield previous[index++]
+    }
   }
 }
 
@@ -365,6 +358,7 @@ export function allOf(...matchables) {
         }
       }
     }
+
     return {
       matched: true,
       value,
