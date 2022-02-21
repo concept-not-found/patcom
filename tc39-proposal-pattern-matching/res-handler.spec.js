@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals'
 
-import ResHandler from './res-handler.js'
+import { ResHandler } from './sample.js'
 
 describe('tc39-proposal-pattern-matching', () => {
   describe('res handler sample', () => {

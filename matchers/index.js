@@ -1,4 +1,4 @@
-import { mapMatcher, mapResultMatcher } from './mappers.js'
+import { mapMatcher, mapResultMatcher } from '../mappers.js'
 
 export const matcher = Symbol('matcher')
 

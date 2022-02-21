@@ -1,6 +1,4 @@
-import { jest } from '@jest/globals'
-
-import TodoReducer from './todo-reducer.js'
+import { TodoReducer } from './sample.js'
 
 describe('tc39-proposal-pattern-matching', () => {
   describe('todo-reducer sample', () => {

@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals'
 
-import WithChainingRegExp from './with-chaining-regexp.js'
+import { WithChainingRegExp } from './sample.js'
 
 describe('tc39-proposal-pattern-matching', () => {
   describe('with chaining regexp sample', () => {

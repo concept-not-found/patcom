@@ -1,6 +1,6 @@
 import { expectMatched } from './test-utils.js'
 
-import { allOf, matchProp } from './index.js'
+import { allOf, matchProp } from '../index.js'
 
 describe('allOf', () => {
   test('matched both RegExp', () => {

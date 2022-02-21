@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals'
 
-import ConditionalJsx from './conditional-jsx.js'
+import { ConditionalJsx } from './sample.js'
 
 function h(component, props, children) {
   return component({ ...props, children })

@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals'
 
-import AdventureCommand from './adventure-command'
+import { AdventureCommand } from './sample.js'
 
 describe('tc39-proposal-pattern-matching', () => {
   describe('adventure command sample', () => {

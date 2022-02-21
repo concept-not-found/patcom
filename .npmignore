@@ -1,2 +1,5 @@
 node_modules/
 dist/
+**/*.spec.js
+**/test-utils.js
+tc39-proposal-pattern-matching/sample.js

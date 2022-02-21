@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals'
 
-import ObjectPatternCaching from './object-pattern-caching.js'
+import { ObjectPatternCaching } from './sample.js'
 
 describe('tc39-proposal-pattern-matching', () => {
   describe('object pattern caching sample', () => {

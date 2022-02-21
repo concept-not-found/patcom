@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals'
 
-import RegExpGroups from './regexp-groups.js'
+import { RegExpGroups } from './sample.js'
 
 describe('tc39-proposal-pattern-matching', () => {
   describe('regexp groups sample', () => {

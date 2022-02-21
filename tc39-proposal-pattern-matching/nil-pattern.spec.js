@@ -1,9 +1,9 @@
 import { jest } from '@jest/globals'
 
-import NilPattern from './nil-pattern.js'
+import { NilPattern } from './sample.js'
 
 describe('tc39-proposal-pattern-matching', () => {
-  describe('nil-pattern sample', () => {
+  describe('nil pattern sample', () => {
     test('call console.log 3rd value with two holes before it', async () => {
       const log = jest.spyOn(global.console, 'log').mockImplementation()
       NilPattern([, , 'some value'])

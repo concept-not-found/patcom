@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals'
 
-import AsciiCi from './ascii-ci.js'
+import { AsciiCi } from './sample.js'
 
 describe('tc39-proposal-pattern-matching', () => {
   describe('ascii ci sample', () => {

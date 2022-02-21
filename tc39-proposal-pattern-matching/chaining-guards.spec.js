@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals'
 
-import ChainingGuards from './chaining-guards.js'
+import { ChainingGuards } from './sample.js'
 
 describe('tc39-proposal-pattern-matching', () => {
   describe('chaining guards sample', () => {

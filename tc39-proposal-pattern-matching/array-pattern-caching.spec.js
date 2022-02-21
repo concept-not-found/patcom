@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals'
 
-import ArrayPatternCaching from './array-pattern-caching.js'
+import { ArrayPatternCaching } from './sample.js'
 
 describe('tc39-proposal-pattern-matching', () => {
   describe('array pattern caching sample', () => {

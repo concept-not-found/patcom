@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals'
 
-import AsyncMatch from './async-match.js'
+import { AsyncMatch } from './sample.js'
 
 describe('tc39-proposal-pattern-matching', () => {
   describe('async match sample', () => {

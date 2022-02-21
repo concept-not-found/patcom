@@ -1,2 +1,2 @@
-export * from './matchers.js'
+export * from './matchers/index.js'
 export * from './mappers.js'

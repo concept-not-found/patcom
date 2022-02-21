@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals'
 
-import FetchJsonResponse from './fetch-json-response.js'
+import { FetchJsonResponse } from './sample.js'
 
 describe('tc39-proposal-pattern-matching', () => {
   describe('fetch json response sample', () => {
