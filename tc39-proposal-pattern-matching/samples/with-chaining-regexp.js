@@ -1,4 +1,6 @@
-import { match, when } from '../index.js'
+import { when } from '../../index.js'
+
+import { match } from '../index.js'
 
 export default () =>
   match('foobar')(

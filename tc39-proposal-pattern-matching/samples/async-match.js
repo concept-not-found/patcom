@@ -1,6 +1,6 @@
-import { defined } from '../../index.js'
+import { defined, when, otherwise } from '../../index.js'
 
-import { match, when, otherwise } from '../index.js'
+import { match } from '../index.js'
 
 export default async (somethingThatRejects, matchable) =>
   match(await matchable)(

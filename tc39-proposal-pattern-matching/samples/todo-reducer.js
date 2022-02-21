@@ -1,19 +1,19 @@
-import { any } from '../../index.js'
+import { defined, when, otherwise } from '../../index.js'
 
-import { match, when, otherwise } from '../index.js'
+import { match } from '../index.js'
 
 export default (initialState = {}) =>
   function todosReducer(state = initialState, action) {
     return match(action)(
       when(
-        { type: 'set-visibility-filter', payload: any },
+        { type: 'set-visibility-filter', payload: defined },
         ({ payload: visFilter }) => ({ ...state, visFilter })
       ),
-      when({ type: 'add-todo', payload: any }, ({ payload: text }) => ({
+      when({ type: 'add-todo', payload: defined }, ({ payload: text }) => ({
         ...state,
         todos: [...state.todos, { text, completed: false }],
       })),
-      when({ type: 'toggle-todo', payload: any }, ({ payload: index }) => {
+      when({ type: 'toggle-todo', payload: defined }, ({ payload: index }) => {
         const newTodos = state.todos.map((todo, i) => {
           return i !== index
             ? todo

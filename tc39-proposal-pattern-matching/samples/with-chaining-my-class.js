@@ -1,6 +1,6 @@
-import { matcher } from '../../index.js'
+import { matcher, when } from '../../index.js'
 
-import { match, when } from '../index.js'
+import { match } from '../index.js'
 
 class MyClass {
   static [matcher](matchable) {

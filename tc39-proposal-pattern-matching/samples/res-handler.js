@@ -1,6 +1,13 @@
-import { matchString, between, any, rest } from '../../index.js'
+import {
+  matchString,
+  between,
+  defined,
+  rest,
+  when,
+  otherwise,
+} from '../../index.js'
 
-import { match, when, otherwise } from '../index.js'
+import { match } from '../index.js'
 
 export default (handleData, handleRedirect, retry, throwSomething) =>
   class RetryableHandler {
@@ -10,7 +17,7 @@ export default (handleData, handleRedirect, retry, throwSomething) =>
 
     handle(req, res) {
       match(res)(
-        when({ status: 200, body: any, rest }, ({ body, rest }) =>
+        when({ status: 200, body: defined, rest }, ({ body, rest }) =>
           handleData(body, rest)
         ),
         when(

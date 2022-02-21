@@ -1,5 +1,5 @@
-import { matchEmpty, defined, rest } from '../../index.js'
-import { match, when, otherwise } from '../index.js'
+import { matchEmpty, defined, rest, when, otherwise } from '../../index.js'
+import { match } from '../index.js'
 
 export default (
     handleEmpty,

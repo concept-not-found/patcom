@@ -1,6 +1,6 @@
-import { matchNumber, matchString } from '../../index.js'
+import { matchNumber, matchString, when } from '../../index.js'
 
-import { match, when } from '../index.js'
+import { match } from '../index.js'
 
 export default () => {
   const randomItem = {

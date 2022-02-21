@@ -3,9 +3,11 @@ import {
   matchBigInt,
   matchString,
   matchArray,
+  when,
+  otherwise,
 } from '../../index.js'
 
-import { match, when, otherwise } from '../index.js'
+import { match } from '../index.js'
 
 export default (value) =>
   match(value)(

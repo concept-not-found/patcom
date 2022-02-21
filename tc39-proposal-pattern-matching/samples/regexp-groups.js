@@ -1,4 +1,5 @@
-import { match, when, otherwise } from '../index.js'
+import { when, otherwise } from '../../index.js'
+import { match } from '../index.js'
 
 export default (process, handleOtherwise) => (arithmeticStr) =>
   match(arithmeticStr)(

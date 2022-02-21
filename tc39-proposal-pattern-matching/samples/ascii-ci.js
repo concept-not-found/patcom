@@ -1,6 +1,6 @@
-import { any } from '../../index.js'
+import { defined, when } from '../../index.js'
 
-import { match, when } from '../index.js'
+import { match } from '../index.js'
 
 function asciiCI(str) {
   return (matchable) => {
@@ -12,7 +12,7 @@ function asciiCI(str) {
 
 export default (cssProperty) =>
   match(cssProperty)(
-    when({ name: asciiCI('color'), value: any }, ({ value }) =>
+    when({ name: asciiCI('color'), value: defined }, ({ value }) =>
       console.log('color: ' + value)
     )
     // matches if `name` is an ASCII case-insensitive match

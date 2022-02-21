@@ -1,6 +1,6 @@
-import { defined } from '../../index.js'
+import { defined, when } from '../../index.js'
 
-import { match, when } from '../index.js'
+import { match } from '../index.js'
 
 export default (h, API_URL, Fetch, Loading, Error, Page) => () =>
   h(Fetch, { url: API_URL }, (props) =>
