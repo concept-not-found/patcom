@@ -265,6 +265,18 @@ export function between(lower, upper) {
   }
 }
 
+export function gt(expected) {
+  return (value) => {
+    if (typeof value === 'number' && expected < value) {
+      return {
+        matched: true,
+        value,
+      }
+    }
+    return unmatched
+  }
+}
+
 export function gte(expected) {
   return (value) => {
     if (typeof value === 'number' && expected <= value) {
