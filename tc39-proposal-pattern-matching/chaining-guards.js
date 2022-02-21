@@ -1,6 +1,6 @@
-import { gt, defined, when, otherwise } from '../../index.js'
+import { gt, defined, when, otherwise } from '../index.js'
 
-import { match } from '../index.js'
+import { match } from './index.js'
 
 export default (res) =>
   match(res)(

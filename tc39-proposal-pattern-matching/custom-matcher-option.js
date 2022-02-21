@@ -1,6 +1,6 @@
-import { matcher, when } from '../../index.js'
+import { matcher, when } from '../index.js'
 
-import { match } from '../index.js'
+import { match } from './index.js'
 
 const Exception = Error
 

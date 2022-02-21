@@ -1,6 +1,6 @@
-import { defined, when, otherwise } from '../../index.js'
+import { defined, when, otherwise } from '../index.js'
 
-import { match } from '../index.js'
+import { match } from './index.js'
 
 export default (initialState = {}) =>
   function todosReducer(state = initialState, action) {

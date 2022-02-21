@@ -1,4 +1,4 @@
-import { matcher } from '../../index.js'
+import { matcher } from '../index.js'
 
 export default class Foo {
   static [matcher](value) {

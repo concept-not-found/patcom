@@ -1,6 +1,6 @@
-import { gte, defined, when } from '../../index.js'
+import { gte, defined, when } from '../index.js'
 
-import { match } from '../index.js'
+import { match } from './index.js'
 
 const RequestError = Error
 

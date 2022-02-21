@@ -1,6 +1,6 @@
-import { matchNumber, when, otherwise } from '../../index.js'
+import { matchNumber, when, otherwise } from '../index.js'
 
-import { match } from '../index.js'
+import { match } from './index.js'
 
 function* integers(to) {
   for (var i = 1; i <= to; i++) yield i

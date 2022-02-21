@@ -1,5 +1,5 @@
-import { oneOf, allOf, matchProp, when, otherwise } from '../../index.js'
-import { match } from '../index.js'
+import { oneOf, allOf, matchProp, when, otherwise } from '../index.js'
+import { match } from './index.js'
 
 export default (handleGoDir, handleTakeItem, handleOtherwise) => (command) =>
   match(command)(

@@ -5,9 +5,9 @@ import {
   matchArray,
   when,
   otherwise,
-} from '../../index.js'
+} from '../index.js'
 
-import { match } from '../index.js'
+import { match } from './index.js'
 
 export default (value) =>
   match(value)(

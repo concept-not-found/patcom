@@ -5,9 +5,9 @@ import {
   rest,
   when,
   otherwise,
-} from '../../index.js'
+} from '../index.js'
 
-import { match } from '../index.js'
+import { match } from './index.js'
 
 export default (handleData, handleRedirect, retry, throwSomething) =>
   class RetryableHandler {
