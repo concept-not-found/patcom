@@ -5,20 +5,25 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
+    "build": "build() { esbuild $1|node --input-type=module > dist/comparison.html; }; build",
+    "start": "nodemon --exec 'npm run build' ./tc39-proposal-pattern-matching/comparison.jsx",
     "test": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' jest"
   },
   "keywords": [
     "pattern matching",
     "functional",
     "pattern",
-    "combinator",
-    "typescript"
+    "combinator"
   ],
   "author": "Ronald Chen <pyrogx1133@gmail.com>",
   "license": "Apache-2.0",
   "devDependencies": {
+    "esbuild": "0.14.23",
     "jest": "27.5.1",
-    "prettier": "2.5.1"
+    "nodemon": "2.0.15",
+    "prettier": "2.5.1",
+    "react": "17.0.2",
+    "react-dom": "17.0.2"
   },
   "jest": {
     "transform": {},

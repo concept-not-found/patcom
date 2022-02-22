@@ -6,7 +6,6 @@ import {
   matchArray,
   gt,
   gte,
-  matchEmpty,
   defined,
   rest,
   oneOf,
@@ -35,7 +34,7 @@ export const ArrayLength =
   (handleEmpty, handleSinglePage, handleMultiplePages, handleOtherwise) =>
   (res) =>
     match(res)(
-      when(matchEmpty, () => handleEmpty()),
+      when({}, () => handleEmpty()),
       when({ data: [defined] }, ({ data: [page] }) => handleSinglePage(page)),
       when({ data: [defined, rest] }, ({ data: [frontPage, ...pages] }) =>
         handleMultiplePages(frontPage, pages)
@@ -77,10 +76,12 @@ export const ArrayPatternCaching = (n) => {
 }
 
 function asciiCI(str) {
-  return (matchable) => {
-    return {
-      matched: str.toLowerCase() == matchable.toLowerCase(),
-    }
+  return {
+    [matcher](matchable) {
+      return {
+        matched: str.toLowerCase() == matchable.toLowerCase(),
+      }
+    },
   }
 }
 
@@ -195,7 +196,6 @@ export const NilPattern = (someArr) =>
 export const ObjectPatternCaching = () => {
   const randomItem = {
     get numOrString() {
-      // console.trace()
       return Math.random() < 0.5 ? 1 : '1'
     },
   }
