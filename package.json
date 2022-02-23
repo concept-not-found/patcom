@@ -5,7 +5,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "build": "build() { esbuild $1|node --input-type=module > dist/comparison.html; }; build",
+    "build": "build() { esbuild $1 | node --input-type=module > dist/comparison.html; }; build",
     "start": "nodemon --exec 'npm run build' ./tc39-proposal-pattern-matching/comparison.jsx",
     "test": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' jest"
   },

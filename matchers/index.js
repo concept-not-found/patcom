@@ -6,7 +6,12 @@ export const unmatched = {
   matched: false,
 }
 
-export function asMatcher(matchable) {
+export const Matcher = (fn) => {
+  fn[matcher] = fn
+  return fn
+}
+
+export const asMatcher = (matchable) => {
   if (matchable === undefined) {
     return any
   }
@@ -27,11 +32,14 @@ export function asMatcher(matchable) {
     case 'object':
       return matchObject(matchable)
   }
+  if (typeof matchable !== 'function') {
+    throw new Error(`unable to create matcher from ${matchable}`)
+  }
   return matchable
 }
 
-export function matchArray(expected) {
-  return (value) => {
+export const matchArray = (expected) =>
+  Matcher((value) => {
     if (value === undefined || !value[Symbol.iterator]) {
       return unmatched
     }
@@ -46,7 +54,7 @@ export function matchArray(expected) {
     }
     const iterator = value[Symbol.iterator]()
     const readValues = []
-    for (const [index, element] of expected.entries()) {
+    for (const element of expected) {
       const matcher = asMatcher(element)
       if (matcher === rest) {
         if (!Array.isArray(value)) {
@@ -75,11 +83,10 @@ export function matchArray(expected) {
     } else {
       return unmatched
     }
-  }
-}
+  })
 
-export function matchObject(expected) {
-  return (value) => {
+export const matchObject = (expected) =>
+  Matcher((value) => {
     if (expected === undefined) {
       if (typeof value === 'object') {
         return {
@@ -134,57 +141,62 @@ export function matchObject(expected) {
       matched: true,
       value: matchedValue,
     }
-  }
-}
+  })
 
-export const matchIdentical = (expected) => (value) => {
-  if (expected === undefined || expected === value) {
-    return {
-      matched: true,
-      value,
+export const matchIdentical = (expected) =>
+  Matcher((value) => {
+    if (expected === undefined || expected === value) {
+      return {
+        matched: true,
+        value,
+      }
     }
-  }
-  return unmatched
-}
+    return unmatched
+  })
 
-export const matchBoolean = (expected) => (value) => {
-  if (
-    (expected === undefined && typeof value === 'boolean') ||
-    expected === value
-  ) {
-    return {
-      matched: true,
-      value,
+export const matchBoolean = (expected) =>
+  Matcher((value) => {
+    if (
+      (expected === undefined && typeof value === 'boolean') ||
+      expected === value
+    ) {
+      return {
+        matched: true,
+        value,
+      }
     }
-  }
-  return unmatched
-}
+    return unmatched
+  })
 
-export const matchNumber = (expected) => (value) => {
-  if (
-    (expected === undefined && typeof value === 'number') ||
-    expected === value
-  ) {
-    return {
-      matched: true,
-      value,
+export const matchNumber = (expected) =>
+  Matcher((value) => {
+    if (
+      (expected === undefined && typeof value === 'number') ||
+      expected === value
+    ) {
+      return {
+        matched: true,
+        value,
+      }
     }
-  }
-  return unmatched
-}
-export const matchBigInt = (expected) => (value) => {
-  if (
-    (expected === undefined && typeof value === 'bigint') ||
-    expected === value
-  ) {
-    return {
-      matched: true,
-      value,
+    return unmatched
+  })
+
+export const matchBigInt = (expected) =>
+  Matcher((value) => {
+    if (
+      (expected === undefined && typeof value === 'bigint') ||
+      expected === value
+    ) {
+      return {
+        matched: true,
+        value,
+      }
     }
-  }
-  return unmatched
-}
-export const matchNonEmptyString = (value) => {
+    return unmatched
+  })
+
+export const matchNonEmptyString = Matcher((value) => {
   if (typeof value === 'string' || value instanceof String) {
     return {
       matched: true,
@@ -192,28 +204,31 @@ export const matchNonEmptyString = (value) => {
     }
   }
   return unmatched
-}
-export const matchString = (expected) => (value) => {
-  if (
-    (expected === undefined && typeof value === 'string') ||
-    value instanceof String ||
-    expected === value
-  ) {
-    return {
-      matched: true,
-      value,
+})
+
+export const matchString = (expected) =>
+  Matcher((value) => {
+    if (
+      (expected === undefined && typeof value === 'string') ||
+      value instanceof String ||
+      expected === value
+    ) {
+      return {
+        matched: true,
+        value,
+      }
     }
-  }
-  return unmatched
-}
-export const any = (value) => {
+    return unmatched
+  })
+
+export const any = Matcher((value) => {
   return {
     matched: true,
     value,
   }
-}
+})
 
-export const defined = (value) => {
+export const defined = Matcher((value) => {
   if (value === undefined) {
     return unmatched
   }
@@ -221,15 +236,16 @@ export const defined = (value) => {
     matched: true,
     value,
   }
-}
-export const rest = () => {
+})
+
+export const rest = Matcher(() => {
   throw new Error(
     'rest is a marker matcher and does actually match anything. it is intended to used within matchArray and matchObject'
   )
-}
+})
 
-export function between(lower, upper) {
-  return (value) => {
+export const between = (lower, upper) =>
+  Matcher((value) => {
     if (typeof value === 'number' && lower <= value && value < upper) {
       return {
         matched: true,
@@ -237,11 +253,10 @@ export function between(lower, upper) {
       }
     }
     return unmatched
-  }
-}
+  })
 
-export function gt(expected) {
-  return (value) => {
+export const gt = (expected) =>
+  Matcher((value) => {
     if (typeof value === 'number' && expected < value) {
       return {
         matched: true,
@@ -249,11 +264,10 @@ export function gt(expected) {
       }
     }
     return unmatched
-  }
-}
+  })
 
-export function gte(expected) {
-  return (value) => {
+export const gte = (expected) =>
+  Matcher((value) => {
     if (typeof value === 'number' && expected <= value) {
       return {
         matched: true,
@@ -261,11 +275,32 @@ export function gte(expected) {
       }
     }
     return unmatched
-  }
-}
+  })
 
-export function matchRegExp(expected) {
-  return (value) => {
+export const lt = (expected) =>
+  Matcher((value) => {
+    if (typeof value === 'number' && expected > value) {
+      return {
+        matched: true,
+        value,
+      }
+    }
+    return unmatched
+  })
+
+export const lte = (expected) =>
+  Matcher((value) => {
+    if (typeof value === 'number' && expected >= value) {
+      return {
+        matched: true,
+        value,
+      }
+    }
+    return unmatched
+  })
+
+export const matchRegExp = (expected) =>
+  Matcher((value) => {
     if (typeof value === 'string' || value instanceof String) {
       const matchedRegExp = value.match(expected)
       if (matchedRegExp) {
@@ -286,25 +321,11 @@ export function matchRegExp(expected) {
       expected,
       typeofValue: typeof value,
     }
-  }
-}
+  })
 
-export function oneOf(...matchables) {
-  return (value) => {
-    let resetValue
-    if (
-      typeof value !== 'string' &&
-      !Array.isArray(value) &&
-      value[Symbol.iterator]
-    ) {
-      resetValue = cachedGenerator(value)
-    } else if (typeof value === 'object') {
-      value = cachedProperties(value)
-    }
+export const oneOf = (...matchables) =>
+  Matcher((value) => {
     for (const matchable of matchables) {
-      if (resetValue) {
-        value = resetValue()
-      }
       const matcher = asMatcher(matchable)
       const result = matcher(value)
       if (result.matched) {
@@ -312,47 +333,10 @@ export function oneOf(...matchables) {
       }
     }
     return unmatched
-  }
-}
-
-export function cachedProperties(source) {
-  const cache = {}
-  return new Proxy(source, {
-    get(target, prop) {
-      if (!cache[prop]) {
-        cache[prop] = source[prop]
-      }
-      return cache[prop]
-    },
   })
-}
 
-export function cachedGenerator(source) {
-  const previous = []
-  let sourceIndex = 0
-  let sourceDone = false
-  return function* reset() {
-    let index = 0
-    while (true) {
-      if (index === sourceIndex) {
-        if (sourceDone) {
-          return
-        }
-        const { value, done } = source.next()
-        if (done) {
-          sourceDone = true
-          return
-        }
-        previous.push(value)
-        sourceIndex += 1
-      }
-      yield previous[index++]
-    }
-  }
-}
-
-export function allOf(...matchables) {
-  return (value) => {
+export const allOf = (...matchables) =>
+  Matcher((value) => {
     for (const matchable of matchables) {
       const matcher = asMatcher(matchable)
       const result = matcher(value)
@@ -369,11 +353,10 @@ export function allOf(...matchables) {
       matched: true,
       value,
     }
-  }
-}
+  })
 
-export function matchProp(expected) {
-  return (value) => {
+export const matchProp = (expected) =>
+  Matcher((value) => {
     if (expected in value) {
       return {
         matched: true,
@@ -381,10 +364,9 @@ export function matchProp(expected) {
       }
     }
     return unmatched
-  }
-}
+  })
 
-export const matchEmpty = (value) => {
+export const matchEmpty = Matcher((value) => {
   if (Array.isArray(value) && value.length === 0) {
     return {
       matched: true,
@@ -398,9 +380,9 @@ export const matchEmpty = (value) => {
     }
   }
   return unmatched
-}
+})
 
-export function when(matchable, ...valueMappers) {
+export const when = (matchable, ...valueMappers) => {
   const matcher = asMatcher(matchable)
   if (valueMappers.length === 0) {
     return matcher
@@ -423,6 +405,4 @@ export function when(matchable, ...valueMappers) {
   return mapMatcher(valueMapper)(guardMatcher)
 }
 
-export function otherwise(...mapperables) {
-  return when(any, ...mapperables)
-}
+export const otherwise = (...mapperables) => when(any, ...mapperables)

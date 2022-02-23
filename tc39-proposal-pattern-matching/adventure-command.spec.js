@@ -52,5 +52,20 @@ describe('tc39-proposal-pattern-matching', () => {
       expect(handleGoDir).not.toHaveBeenCalled()
       expect(handleOtherwise).not.toHaveBeenCalled()
     })
+
+    test('calls handleOtherwise unsupported command', () => {
+      const handleGoDir = jest.fn()
+      const handleTakeItem = jest.fn()
+      const handleOtherwise = jest.fn()
+      const matcher = AdventureCommand(
+        handleGoDir,
+        handleTakeItem,
+        handleOtherwise
+      )
+      matcher(['attack'])
+      expect(handleOtherwise).toHaveBeenCalledTimes(1)
+      expect(handleGoDir).not.toHaveBeenCalled()
+      expect(handleTakeItem).not.toHaveBeenCalled()
+    })
   })
 })
