@@ -143,100 +143,55 @@ export const matchObject = (expected) =>
     }
   })
 
+export const matchPredicate = (predicate) =>
+  Matcher((value) =>
+    predicate(value)
+      ? {
+          matched: true,
+          value,
+        }
+      : unmatched
+  )
+
 export const matchIdentical = (expected) =>
-  Matcher((value) => {
-    if (expected === undefined || expected === value) {
-      return {
-        matched: true,
-        value,
-      }
-    }
-    return unmatched
-  })
+  matchPredicate((value) => expected === undefined || expected === value)
 
 export const matchBoolean = (expected) =>
-  Matcher((value) => {
-    if (
+  matchPredicate(
+    (value) =>
       (expected === undefined && typeof value === 'boolean') ||
       expected === value
-    ) {
-      return {
-        matched: true,
-        value,
-      }
-    }
-    return unmatched
-  })
+  )
 
 export const matchNumber = (expected) =>
-  Matcher((value) => {
-    if (
+  matchPredicate(
+    (value) =>
       (expected === undefined && typeof value === 'number') ||
       expected === value
-    ) {
-      return {
-        matched: true,
-        value,
-      }
-    }
-    return unmatched
-  })
+  )
 
 export const matchBigInt = (expected) =>
-  Matcher((value) => {
-    if (
+  matchPredicate(
+    (value) =>
       (expected === undefined && typeof value === 'bigint') ||
       expected === value
-    ) {
-      return {
-        matched: true,
-        value,
-      }
-    }
-    return unmatched
-  })
+  )
 
-export const matchNonEmptyString = Matcher((value) => {
-  if (typeof value === 'string' || value instanceof String) {
-    return {
-      matched: true,
-      value,
-    }
-  }
-  return unmatched
-})
+export const matchNonEmptyString = matchPredicate(
+  (value) => typeof value === 'string' || value instanceof String
+)
 
 export const matchString = (expected) =>
-  Matcher((value) => {
-    if (
+  matchPredicate(
+    (value) =>
       (expected === undefined && typeof value === 'string') ||
       value instanceof String ||
       expected === value
-    ) {
-      return {
-        matched: true,
-        value,
-      }
-    }
-    return unmatched
-  })
+  )
 
-export const any = Matcher((value) => {
-  return {
-    matched: true,
-    value,
-  }
-})
+export const any = matchPredicate(() => true)
 
-export const defined = Matcher((value) => {
-  if (value === undefined) {
-    return unmatched
-  }
-  return {
-    matched: true,
-    value,
-  }
-})
+export const defined = matchPredicate((value) => value !== undefined)
 
 export const rest = Matcher(() => {
   throw new Error(
@@ -245,59 +200,21 @@ export const rest = Matcher(() => {
 })
 
 export const between = (lower, upper) =>
-  Matcher((value) => {
-    if (typeof value === 'number' && lower <= value && value < upper) {
-      return {
-        matched: true,
-        value,
-      }
-    }
-    return unmatched
-  })
+  matchPredicate(
+    (value) => typeof value === 'number' && lower <= value && value < upper
+  )
 
 export const gt = (expected) =>
-  Matcher((value) => {
-    if (typeof value === 'number' && expected < value) {
-      return {
-        matched: true,
-        value,
-      }
-    }
-    return unmatched
-  })
+  matchPredicate((value) => typeof value === 'number' && expected < value)
 
 export const gte = (expected) =>
-  Matcher((value) => {
-    if (typeof value === 'number' && expected <= value) {
-      return {
-        matched: true,
-        value,
-      }
-    }
-    return unmatched
-  })
+  matchPredicate((value) => typeof value === 'number' && expected <= value)
 
 export const lt = (expected) =>
-  Matcher((value) => {
-    if (typeof value === 'number' && expected > value) {
-      return {
-        matched: true,
-        value,
-      }
-    }
-    return unmatched
-  })
+  matchPredicate((value) => typeof value === 'number' && expected > value)
 
 export const lte = (expected) =>
-  Matcher((value) => {
-    if (typeof value === 'number' && expected >= value) {
-      return {
-        matched: true,
-        value,
-      }
-    }
-    return unmatched
-  })
+  matchPredicate((value) => typeof value === 'number' && expected >= value)
 
 export const matchRegExp = (expected) =>
   Matcher((value) => {
@@ -356,31 +273,13 @@ export const allOf = (...matchables) =>
   })
 
 export const matchProp = (expected) =>
-  Matcher((value) => {
-    if (expected in value) {
-      return {
-        matched: true,
-        value,
-      }
-    }
-    return unmatched
-  })
+  matchPredicate((value) => expected in value)
 
-export const matchEmpty = Matcher((value) => {
-  if (Array.isArray(value) && value.length === 0) {
-    return {
-      matched: true,
-      value,
-    }
-  }
-  if (Object.keys(value).length === 0) {
-    return {
-      matched: true,
-      value,
-    }
-  }
-  return unmatched
-})
+export const empty = matchPredicate(
+  (value) =>
+    (Array.isArray(value) && value.length === 0) ||
+    Object.keys(value).length === 0
+)
 
 export const when = (matchable, ...valueMappers) => {
   const matcher = asMatcher(matchable)
