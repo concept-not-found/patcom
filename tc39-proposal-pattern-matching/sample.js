@@ -4,8 +4,8 @@ import {
   matchBigInt,
   matchString,
   matchArray,
-  gt,
-  gte,
+  greaterThan,
+  greaterThanEquals,
   defined,
   rest,
   oneOf,
@@ -112,7 +112,9 @@ export const BuiltInCustomMatchers = (value) =>
 
 export const ChainingGuards = (res) =>
   match(res)(
-    when({ pages: gt(1), data: defined }, () => console.log('multiple pages')),
+    when({ pages: greaterThan(1), data: defined }, () =>
+      console.log('multiple pages')
+    ),
     when({ pages: 1, data: defined }, () => console.log('one page')),
     otherwise(() => console.log('no pages'))
   )
@@ -184,7 +186,7 @@ export const FetchJsonResponse = async (fetch, jsonService) => {
       ({ headers: { 'Content-Length': s } }) => console.log(`size is ${s}`)
     ),
     when({ status: 404 }, () => console.log('JSON not found')),
-    when({ status: gte(400) }, () => {
+    when({ status: greaterThanEquals(400) }, () => {
       throw new RequestError(res)
     })
   )

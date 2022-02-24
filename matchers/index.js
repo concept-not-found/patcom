@@ -28,7 +28,7 @@ export const asMatcher = (matchable) => {
     case 'boolean':
     case 'number':
     case 'string':
-      return matchIdentical(matchable)
+      return equals(matchable)
     case 'object':
       return matchObject(matchable)
   }
@@ -153,7 +153,7 @@ export const matchPredicate = (predicate) =>
       : unmatched
   )
 
-export const matchIdentical = (expected) =>
+export const equals = (expected) =>
   matchPredicate((value) => expected === undefined || expected === value)
 
 export const matchBoolean = (expected) =>
@@ -177,7 +177,7 @@ export const matchBigInt = (expected) =>
       expected === value
   )
 
-export const matchNonEmptyString = matchPredicate(
+export const nonEmptyString = matchPredicate(
   (value) => typeof value === 'string' || value instanceof String
 )
 
@@ -204,16 +204,16 @@ export const between = (lower, upper) =>
     (value) => typeof value === 'number' && lower <= value && value < upper
   )
 
-export const gt = (expected) =>
+export const greaterThan = (expected) =>
   matchPredicate((value) => typeof value === 'number' && expected < value)
 
-export const gte = (expected) =>
+export const greaterThanEquals = (expected) =>
   matchPredicate((value) => typeof value === 'number' && expected <= value)
 
-export const lt = (expected) =>
+export const lessThan = (expected) =>
   matchPredicate((value) => typeof value === 'number' && expected > value)
 
-export const lte = (expected) =>
+export const lessThanEquals = (expected) =>
   matchPredicate((value) => typeof value === 'number' && expected >= value)
 
 export const matchRegExp = (expected) =>
@@ -277,6 +277,7 @@ export const matchProp = (expected) =>
 
 export const empty = matchPredicate(
   (value) =>
+    value === '' ||
     (Array.isArray(value) && value.length === 0) ||
     Object.keys(value).length === 0
 )
