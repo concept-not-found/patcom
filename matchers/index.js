@@ -57,12 +57,14 @@ export const matchArray = (expected) =>
     for (const element of expected) {
       const matcher = asMatcher(element)
       if (matcher === rest) {
+        const restValues = [...iterator]
         if (!Array.isArray(value)) {
-          value = [...readValues, ...iterator]
+          value = [...readValues, ...restValues]
         }
         return {
           matched: true,
           value,
+          rest: restValues,
         }
       }
       const { value: iteratorValue, done } = iterator.next()
@@ -112,20 +114,16 @@ export const matchObject = (expected) =>
       }
       matchedByKey[key] = true
     }
-    const matchedValue = {}
-    if (restKey) {
-      matchedValue[restKey] = {}
-    }
+    const restValue = {}
     for (const key in value) {
-      if (!matchedByKey[key]) {
-        if (restKey) {
-          matchedValue[restKey][key] = value[key]
-        } else {
-          unmatchedKeys.push(key)
-        }
+      if (matchedByKey[key]) {
         continue
       }
-      matchedValue[key] = value[key]
+      if (restKey) {
+        restValue[key] = value[key]
+      } else {
+        unmatchedKeys.push(key)
+      }
     }
     if (unmatchedKeys.length !== 0) {
       unmatchedKeys.sort()
@@ -137,9 +135,16 @@ export const matchObject = (expected) =>
         unmatchedKeys,
       }
     }
+    if (restKey) {
+      return {
+        matched: true,
+        value,
+        rest: restValue,
+      }
+    }
     return {
       matched: true,
-      value: matchedValue,
+      value,
     }
   })
 

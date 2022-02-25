@@ -54,6 +54,7 @@ describe('matchArray', () => {
     const result = matcher([1, 2, 3])
     expectMatched(result)
     expect(result.value).toEqual([1, 2, 3])
+    expect(result.rest).toEqual([2, 3])
   })
 
   test('rest matches remaining element even if already complete match', () => {
@@ -61,6 +62,7 @@ describe('matchArray', () => {
     const result = matcher([1, 2, 3])
     expectMatched(result)
     expect(result.value).toEqual([1, 2, 3])
+    expect(result.rest).toEqual([])
   })
 
   test('empty expected matches any iterator', () => {

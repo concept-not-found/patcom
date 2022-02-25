@@ -26,10 +26,12 @@ describe('matchObject', () => {
     expectMatched(result)
     expect(result.value).toEqual({
       x: 1,
-      rest: {
-        y: 2,
-        z: 3,
-      },
+      y: 2,
+      z: 3,
+    })
+    expect(result.rest).toEqual({
+      y: 2,
+      z: 3,
     })
   })
 })
