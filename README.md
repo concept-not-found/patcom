@@ -682,7 +682,7 @@ Creates a `Matcher` from other `Matcher`s.
   ```ts
   function matchArray<T>(expected?: T[]): Matcher<Array<T>>
   ```
-  Matches `expected` array of matchers completely. Values must be an array with the same number of elements as `expected` array. Each element in value array must match to the coresponding matcher in expected array. Primatives in `expected` are wrapped with their corresponding `Matcher` builder. Value is allowed to have more elements than `expected` array if special `rest` matcher is used to consume remainder of elements. Rest of properties grouped into the `rest` property on the matched result. Matches any defined array if `expected` is not provided.
+  Matches `expected` array until end or [`rest`](#rest) matcher. Primatives in `expected` are wrapped with their corresponding `Matcher` builder. Rest of properties grouped into the `rest` property on the matched result. Matches any defined array if `expected` is not provided.
   <details>
   <summary>Example</summary>
 
@@ -702,7 +702,7 @@ Creates a `Matcher` from other `Matcher`s.
   ```js
   const matcher = matchArray([42, 'alice', rest])
 
-  matcher([42, 'alice']) ≡ { matched: true, value: [42, 'alice'] }
+  matcher([42, 'alice']) ≡ { matched: true, value: [42, 'alice'], rest: [] }
   matcher([42, 'alice', true, 69]) ≡ { matched: true, value: [42, 'alice', true, 69], rest: [true, 69]] }
 
   matcher([]) ≡ { matched: false }
@@ -731,7 +731,7 @@ Creates a `Matcher` from other `Matcher`s.
   ```ts
   function matchObject<T>(expected?: T): Matcher<T>
   ```
-  Matches `expected` object of matchers completely. Values must be an object with the same set of keys as `expected` object. Each value in object must match to the coresponding matcher in expected object. Primatives in `expected` are wrapped with their corresponding `Matcher` builder. Value is allowed to have more keys than `expected` object if special `rest` matcher is used to consume reaminder of keys. Rest of properties grouped into the `rest` property on the matched result. Matches any defined object if `expected` is not provided.
+  Matches `expected` enumerable object properties completely or partially with [`rest`](#rest) matcher. Primatives in `expected` are wrapped with their corresponding `Matcher` builder. Rest of properties grouped into the `rest` property on the matched result. Matches any defined object if `expected` is not provided.
   <details>
   <summary>Example</summary>
 
@@ -749,7 +749,7 @@ Creates a `Matcher` from other `Matcher`s.
   ```js
   const matcher = matchObject({ x: 42, y: 'alice', rest })
 
-  matcher({ x: 42, y: 'alice' }) ≡ { matched: true, value: { x: 42, y: 'alice' } }
+  matcher({ x: 42, y: 'alice' }) ≡ { matched: true, value: { x: 42, y: 'alice' }, rest: {} }
   matcher({ x: 42, y: 'alice', z: true, aa: 69 }) ≡ { matched: true, value: { x: 42, y: 'alice', z: true, aa: 69 }, rest: { z: true, aa: 69 } }
 
   matcher({}) ≡ { matched: false }
@@ -774,7 +774,65 @@ Creates a `Matcher` from other `Matcher`s.
   ```ts
   const res: Matcher<any>
   ```
-  A special `Matcher` that is only valid as element of `matchArray` or property of `matchObject`. This consumes the remaining elements/properties to allow a complete match of the array/object.
+  A special `Matcher` that is only valid as element of [`matchArray`](#matcharray) or property of [`matchObject`](#matchobject). This consumes the remaining elements/properties to prefix matching of arrays and partial matching of objects.
+  <details>
+  <summary>Example</summary>
+  ```js
+  const matcher = when({
+    headers: [
+      {
+        name: 'cookie',
+        value: defined
+      },
+      rest
+    ],
+    rest
+  }, ({ headers: [{ value: cookieValue }] }, { results: { headers: { rest: restOfHeaders } }, rest: restOfResponse }) =>
+    [cookieValue, restOfHeaders, restOfResponse]
+  )
+
+  matcher({
+    status: 200,
+    headers: [
+      {
+        name: 'cookie',
+        value: 'om'
+      },
+      {
+        name: 'accept',
+        value: 'everybody'
+      }
+    ]
+  }) ≡ ['om', [{ name: 'accept', value: 'everybody' }], { status: 200 }]
+
+  matcher(undefined) ≡ { matched: false }
+  matcher({ key: 'value' }) ≡ { matched: false }
+  ```
+  ```js
+  const matcher = matchArray([42, 'alice', rest])
+
+  matcher([42, 'alice']) ≡ { matched: true, value: [42, 'alice'], rest: [] }
+  matcher([42, 'alice', true, 69]) ≡ { matched: true, value: [42, 'alice', true, 69], rest: [true, 69]] }
+
+  matcher([]) ≡ { matched: false }
+  matcher([42]) ≡ { matched: false }
+  matcher(['alice']) ≡ { matched: false }
+  matcher([69, 'alice']) ≡ { matched: false }
+  matcher(undefined) ≡ { matched: false }
+  matcher({ key: 'value' }) ≡ { matched: false }
+  ```
+  ```js
+  const matcher = matchObject({ x: 42, y: 'alice', rest })
+
+  matcher({ x: 42, y: 'alice' }) ≡ { matched: true, value: { x: 42, y: 'alice' }, rest: {} }
+  matcher({ x: 42, y: 'alice', z: true, aa: 69 }) ≡ { matched: true, value: { x: 42, y: 'alice', z: true, aa: 69 }, rest: { z: true, aa: 69 } }
+
+  matcher({}) ≡ { matched: false }
+  matcher({ x: 42 }) ≡ { matched: false }
+  matcher({ y: 'alice' }) ≡ { matched: false }
+  matcher(undefined) ≡ { matched: false }
+  ```
+  </details>
 
 - #### `allOf`
   ```ts
@@ -790,7 +848,9 @@ Creates a `Matcher` from other `Matcher`s.
 
 - #### `when`
   ```ts
-  function when<T, R>(expected: T, ...guards: (value: T) => Boolean, valueMapper?: (value: T) => R): Matcher<R>
+  type ValueMapper<T, R> = (value: T, matched: Matched<T>) => R
+
+  function when<T, R>(expected: T, ...guards: ValueMapper<T, Boolean>, valueMapper?: ValueMapper<T, R>): Matcher<R>
   ```
   Matches if `expected` matches and satifies all the `guards`, then matched value is transformed with `valueMapper`. `guards` and `valueMapper` are optional. Primative `expected` are wrapped with their corresponding `Matcher` builder.
 
@@ -815,7 +875,7 @@ Creates a `Matcher` from other `Matcher`s.
 ![tc39 comparision](./tc39-proposal-pattern-matching/diff.png)
 
 ### Differences
-The most notable different is `patcom` implemented [enumerable object properties](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Enumerability_and_ownership_of_properties) matching, where as TC39 pattern matching proposal implements partial object matching. See https://github.com/tc39/proposal-pattern-matching/issues/243.
+The most notable different is `patcom` implemented [enumerable object properties](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Enumerability_and_ownership_of_properties) matching, where as TC39 pattern matching proposal implements partial object matching. See https://github.com/tc39/proposal-pattern-matching/issues/243. The [`rest`](#rest) matcher can be used to achieve partial object matching.
 
 Since `patcom` had to separate the pattern matching from destructuring, enumerable object properties matching is the most sensible. Syntactically separation of the pattern from destructuring is the biggest difference.
 

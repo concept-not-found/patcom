@@ -54,6 +54,7 @@ export const matchArray = (expected) =>
     }
     const iterator = value[Symbol.iterator]()
     const readValues = []
+    const results = []
     for (const element of expected) {
       const matcher = asMatcher(element)
       if (matcher === rest) {
@@ -64,6 +65,7 @@ export const matchArray = (expected) =>
         return {
           matched: true,
           value,
+          results,
           rest: restValues,
         }
       }
@@ -72,7 +74,9 @@ export const matchArray = (expected) =>
         return unmatched
       }
       readValues.push(iteratorValue)
-      if (matcher(iteratorValue).matched) {
+      const result = matcher(iteratorValue)
+      results.push(result)
+      if (result.matched) {
         continue
       }
       return unmatched
@@ -81,6 +85,7 @@ export const matchArray = (expected) =>
       return {
         matched: true,
         value: readValues,
+        results,
       }
     } else {
       return unmatched
@@ -100,6 +105,7 @@ export const matchObject = (expected) =>
       }
     }
     let restKey
+    const results = {}
     const matchedByKey = {}
     const unmatchedKeys = []
     for (const key in expected) {
@@ -108,7 +114,11 @@ export const matchObject = (expected) =>
         restKey = key
         continue
       }
-      if (!(key in value) || !matcher(value[key]).matched) {
+
+      if (key in value) {
+        results[key] = matcher(value[key])
+      }
+      if (!results?.[key]?.matched ?? false) {
         unmatchedKeys.push(key)
         continue
       }
@@ -139,12 +149,14 @@ export const matchObject = (expected) =>
       return {
         matched: true,
         value,
+        results,
         rest: restValue,
       }
     }
     return {
       matched: true,
       value,
+      results,
     }
   })
 
@@ -259,9 +271,11 @@ export const oneOf = (...matchables) =>
 
 export const allOf = (...matchables) =>
   Matcher((value) => {
+    const results = []
     for (const matchable of matchables) {
       const matcher = asMatcher(matchable)
       const result = matcher(value)
+      results.push(result)
       if (!result.matched) {
         return {
           matched: false,
@@ -274,6 +288,7 @@ export const allOf = (...matchables) =>
     return {
       matched: true,
       value,
+      results
     }
   })
 

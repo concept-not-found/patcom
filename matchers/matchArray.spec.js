@@ -49,6 +49,29 @@ describe('matchArray', () => {
     expect(result.matched).toBe(false)
   })
 
+  test('access nested matched result fields', () => {
+    const matcher = matchArray([/^hello (?<id>\d+)$/])
+    const result = matcher(['hello 42'])
+    expectMatched(result)
+    const {
+      results: [
+        {
+          matchedRegExp: {
+            groups: { id },
+          },
+        },
+      ],
+    } = result
+    expect(id).toBe('42')
+  })
+
+  test('only contains nested matched result fields up to rest', () => {
+    const matcher = matchArray([/^hello (?<id>\d+)$/, rest])
+    const result = matcher(['hello 42', 69])
+    expectMatched(result)
+    expect(result.results.length).toBe(1)
+  })
+
   test('rest matches remaining element', () => {
     const matcher = matchArray([1, rest])
     const result = matcher([1, 2, 3])

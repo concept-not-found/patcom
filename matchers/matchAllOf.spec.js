@@ -19,6 +19,28 @@ describe('allOf', () => {
     expect(result.value).toEqual(input)
   })
 
+  test('access nested matched result fields', () => {
+    const matcher = allOf(/^(?<greeting>hello|hi)/, /(?<id>\d+)$/)
+    const result = matcher('hello 42')
+    expectMatched(result)
+    const {
+      results: [
+        {
+          matchedRegExp: {
+            groups: { greeting },
+          },
+        },
+        {
+          matchedRegExp: {
+            groups: { id },
+          },
+        },
+      ],
+    } = result
+    expect(greeting).toBe('hello')
+    expect(id).toBe('42')
+  })
+
   test('unmatched when one RegExp is unmatched', () => {
     const matcher = allOf(/hello/, /world/)
     const result = matcher('hello bob')

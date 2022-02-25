@@ -1,4 +1,4 @@
-import { match, when, otherwise, defined } from './index.js'
+import { match, when, otherwise, defined, rest } from './index.js'
 
 describe('samples', () => {
   describe('discriminating unions', () => {
@@ -32,6 +32,51 @@ describe('samples', () => {
         role: 'robot',
       }
       expect(greeter(person)).toBe('STRANGER DANGER')
+    })
+  })
+
+  describe('access nested rest', () => {
+    const matcher = when(
+      {
+        headers: [
+          {
+            name: 'cookie',
+            value: defined,
+          },
+          rest,
+        ],
+        rest,
+      },
+      (
+        { headers: [{ value: cookieValue }] },
+        {
+          results: {
+            headers: { rest: restOfHeaders },
+          },
+          rest: restOfResponse,
+        }
+      ) => [cookieValue, restOfHeaders, restOfResponse]
+    )
+
+    test('extra headers and response values are accessible', () => {
+      const result = match({
+        status: 200,
+        headers: [
+          {
+            name: 'cookie',
+            value: 'om',
+          },
+          {
+            name: 'accept',
+            value: 'everybody',
+          },
+        ],
+      })(matcher)
+      expect(result).toEqual([
+        'om',
+        [{ name: 'accept', value: 'everybody' }],
+        { status: 200 },
+      ])
     })
   })
 })
