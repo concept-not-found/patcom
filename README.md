@@ -964,7 +964,7 @@ Creates a `Matcher` from other `Matcher`s.
     valueMapper: ValueMapper<T, R>
   ): Matcher<R>
   ```
-  Matches if `expected` matches and satifies all the `guards`, then matched value is transformed with `valueMapper`. `guards` are optional. Primative `expected` are wrapped with their corresponding `Matcher` builder.
+  Matches if `expected` matches and satifies all the `guards`, then matched value is transformed with `valueMapper`. `guards` are optional. Primative `expected` are wrapped with their corresponding `Matcher` builder. Second parameter to `valueMapper` is the `Matched` `Result`. See [`matchRegExp`](#matchregexp) and [`rest`](#rest) for extra fields on `Matched`.
   <details>
   <summary>Example</summary>
 
