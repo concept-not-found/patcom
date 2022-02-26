@@ -3,6 +3,13 @@ import { expectMatched } from './test-utils.js'
 import { allOf, matchProp } from '../index.js'
 
 describe('allOf', () => {
+  test('matches any if no expected matchers', () => {
+    const matcher = allOf()
+    const result = matcher(undefined)
+    expectMatched(result)
+    expect(result.value).toEqual(undefined)
+  })
+
   test('matched both RegExp', () => {
     const matcher = allOf(/hello/, /world/)
     const result = matcher('hello world')

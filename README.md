@@ -689,8 +689,16 @@ Creates a `Matcher` from other `Matcher`s.
   ```js
   const matcher = matchArray([42, 'alice'])
 
-  matcher([42, 'alice']) ≡ { matched: true, value: [42, 'alice'] }
+  matcher([42, 'alice']) ≡ {
+    matched: true,
+    value: [42, 'alice'],
+    results: [
+      { matched: true, value: 42 },
+      { matched: true, value: 'alice' }
+    ]
+  }
 
+  matcher(['alice', 42]) ≡ { matched: false }
   matcher([42, 'alice', true, 69]) ≡ { matched: false }
   matcher([]) ≡ { matched: false }
   matcher([42]) ≡ { matched: false }
@@ -702,8 +710,24 @@ Creates a `Matcher` from other `Matcher`s.
   ```js
   const matcher = matchArray([42, 'alice', rest])
 
-  matcher([42, 'alice']) ≡ { matched: true, value: [42, 'alice'], rest: [] }
-  matcher([42, 'alice', true, 69]) ≡ { matched: true, value: [42, 'alice', true, 69], rest: [true, 69]] }
+  matcher([42, 'alice']) ≡ {
+    matched: true,
+    value: [42, 'alice'],
+    results: [
+      { matched: true, value: 42 },
+      { matched: true, value: 'alice' }
+    ],
+    rest: []
+  }
+  matcher([42, 'alice', true, 69]) ≡ {
+    matched: true,
+    value: [42, 'alice', true, 69],
+    results: [
+      { matched: true, value: 42 },
+      { matched: true, value: 'alice' }
+    ],
+    rest: [true, 69]
+  }
 
   matcher([]) ≡ { matched: false }
   matcher([42]) ≡ { matched: false }
@@ -715,12 +739,11 @@ Creates a `Matcher` from other `Matcher`s.
   ```js
   const matcher = matchArray()
 
-  matcher([42, 'alice']) ≡ { matched: true, value: [42, 'alice'] }
-  matcher([42, 'alice', true, 69]) ≡ { matched: true, value: [42, 'alice', true, 69] }
-  matcher([]) ≡ { matched: true, value: [] }
-  matcher([42]) ≡ { matched: true, value: [42] }
-  matcher(['alice']) ≡ { matched: true, value: ['alice'] }
-  matcher([69, 'alice']) ≡ { matched: true, value: [69, 'alice'] }
+  matcher([42, 'alice']) ≡ {
+    matched: true,
+    value: [42, 'alice'],
+    results: []
+  }
 
   matcher(undefined) ≡ { matched: false }
   matcher({ key: 'value' }) ≡ { matched: false }
@@ -738,7 +761,22 @@ Creates a `Matcher` from other `Matcher`s.
   ```js
   const matcher = matchObject({ x: 42, y: 'alice' })
 
-  matcher({ x: 42, y: 'alice' }) ≡ { matched: true, value: { x: 42, y: 'alice' } }
+  matcher({ x: 42, y: 'alice' }) ≡ {
+    matched: true,
+    value: { x: 42, y: 'alice' },
+    results: {
+      x: { matched: true, value: 42 },
+      y: { matched: true, value: 'alice' }
+    }
+  }
+  matcher({ y: 'alice', x: 42 }) ≡ {
+    matched: true,
+    value: { y: 'alice', x: 42 },
+    results: {
+      x: { matched: true, value: 42 },
+      y: { matched: true, value: 'alice' }
+    }
+  }
 
   matcher({ x: 42, y: 'alice', z: true, aa: 69 }) ≡ { matched: false }
   matcher({}) ≡ { matched: false }
@@ -749,8 +787,24 @@ Creates a `Matcher` from other `Matcher`s.
   ```js
   const matcher = matchObject({ x: 42, y: 'alice', rest })
 
-  matcher({ x: 42, y: 'alice' }) ≡ { matched: true, value: { x: 42, y: 'alice' }, rest: {} }
-  matcher({ x: 42, y: 'alice', z: true, aa: 69 }) ≡ { matched: true, value: { x: 42, y: 'alice', z: true, aa: 69 }, rest: { z: true, aa: 69 } }
+  matcher({ x: 42, y: 'alice' }) ≡ {
+    matched: true,
+    value: { x: 42, y: 'alice' },
+    results: {
+      x: { matched: true, value: 42 },
+      y: { matched: true, value: 'alice' }
+    },
+    rest: {}
+  }
+  matcher({ x: 42, y: 'alice', z: true, aa: 69 }) ≡ {
+    matched: true,
+    value: { x: 42, y: 'alice', z: true, aa: 69 },
+    results: {
+      x: { matched: true, value: 42 },
+      y: { matched: true, value: 'alice' }
+    },
+    rest: { z: true, aa: 69 }
+  }
 
   matcher({}) ≡ { matched: false }
   matcher({ x: 42 }) ≡ { matched: false }
@@ -760,11 +814,11 @@ Creates a `Matcher` from other `Matcher`s.
   ```js
   const matcher = matchObject()
 
-  matcher({ x: 42, y: 'alice' }) ≡ { matched: true, value: { x: 42, y: 'alice' } }
-  matcher({ x: 42, y: 'alice', z: true, aa: 69 }) ≡ { matched: true, value: { x: 42, y: 'alice', z: true, aa: 69 } }
-  matcher({}) ≡ { matched: true, value: {} }
-  matcher({ x: 42 }) ≡ { matched: true, value: { x: 42 } }
-  matcher({ y: 'alice' }) ≡ { matched: true, value: { y: 'alice' } }
+  matcher({ x: 42, y: 'alice' }) ≡ {
+    matched: true,
+    value: { x: 42, y: 'alice' },
+    results: {}
+  }
 
   matcher({ key: 'value' }) ≡ { matched: false }
   ```
@@ -777,33 +831,34 @@ Creates a `Matcher` from other `Matcher`s.
   A special `Matcher` that is only valid as element of [`matchArray`](#matcharray) or property of [`matchObject`](#matchobject). This consumes the remaining elements/properties to prefix matching of arrays and partial matching of objects.
   <details>
   <summary>Example</summary>
+
   ```js
   const matcher = when({
     headers: [
-      {
-        name: 'cookie',
-        value: defined
-      },
+      { name: 'cookie', value: defined },
       rest
     ],
     rest
-  }, ({ headers: [{ value: cookieValue }] }, { results: { headers: { rest: restOfHeaders } }, rest: restOfResponse }) =>
-    [cookieValue, restOfHeaders, restOfResponse]
-  )
+  }, (
+    { headers: [{ value: cookieValue }] },
+    { results: { headers: { rest: restOfHeaders } }, rest: restOfResponse }
+  ) => ({
+    cookieValue,
+    restOfHeaders,
+    restOfResponse
+  }))
 
   matcher({
     status: 200,
     headers: [
-      {
-        name: 'cookie',
-        value: 'om'
-      },
-      {
-        name: 'accept',
-        value: 'everybody'
-      }
+      { name: 'cookie', value: 'om' },
+      { name: 'accept', value: 'everybody' }
     ]
-  }) ≡ ['om', [{ name: 'accept', value: 'everybody' }], { status: 200 }]
+  }) ≡ {
+    cookieValue: 'om',
+    restOfHeaders: [{ name: 'accept', value: 'everybody' }],
+    restOfResponse: { status: 200 }
+  }
 
   matcher(undefined) ≡ { matched: false }
   matcher({ key: 'value' }) ≡ { matched: false }
@@ -811,8 +866,24 @@ Creates a `Matcher` from other `Matcher`s.
   ```js
   const matcher = matchArray([42, 'alice', rest])
 
-  matcher([42, 'alice']) ≡ { matched: true, value: [42, 'alice'], rest: [] }
-  matcher([42, 'alice', true, 69]) ≡ { matched: true, value: [42, 'alice', true, 69], rest: [true, 69]] }
+  matcher([42, 'alice']) ≡ {
+    matched: true,
+    value: [42, 'alice'],
+    results: [
+      { matched: true, value: 42 },
+      { matched: true, value: 'alice' }
+    ],
+    rest: []
+  }
+  matcher([42, 'alice', true, 69]) ≡ {
+    matched: true,
+    value: [42, 'alice', true, 69],
+    results: [
+      { matched: true, value: 42 },
+      { matched: true, value: 'alice' }
+    ],
+    rest: [true, 69]
+  }
 
   matcher([]) ≡ { matched: false }
   matcher([42]) ≡ { matched: false }
@@ -824,8 +895,24 @@ Creates a `Matcher` from other `Matcher`s.
   ```js
   const matcher = matchObject({ x: 42, y: 'alice', rest })
 
-  matcher({ x: 42, y: 'alice' }) ≡ { matched: true, value: { x: 42, y: 'alice' }, rest: {} }
-  matcher({ x: 42, y: 'alice', z: true, aa: 69 }) ≡ { matched: true, value: { x: 42, y: 'alice', z: true, aa: 69 }, rest: { z: true, aa: 69 } }
+  matcher({ x: 42, y: 'alice' }) ≡ {
+    matched: true,
+    value: { x: 42, y: 'alice' },
+    results: {
+      x: { matched: true, value: 42 },
+      y: { matched: true, value: 'alice' }
+    },
+    rest: {}
+  }
+  matcher({ x: 42, y: 'alice', z: true, aa: 69 }) ≡ {
+    matched: true,
+    value: { x: 42, y: 'alice', z: true, aa: 69 },
+    results: {
+      x: { matched: true, value: 42 },
+      y: { matched: true, value: 'alice' }
+    },
+    rest: { z: true, aa: 69 }
+  }
 
   matcher({}) ≡ { matched: false }
   matcher({ x: 42 }) ≡ { matched: false }
@@ -836,15 +923,66 @@ Creates a `Matcher` from other `Matcher`s.
 
 - #### `allOf`
   ```ts
-  function allOf<T>(expected: ...T): Matcher<T[]>
+  function allOf<T>(expected: ...T): Matcher<T>
   ```
-  Matches if all `expected` matchers are matched. Primatives in `expected` are wrapped with their corresponding `Matcher` builder.
+  Matches if all `expected` matchers are matched. Primatives in `expected` are wrapped with their corresponding `Matcher` builder. Always matches if `expected` is empty.
+  <details>
+  <summary>Example</summary>
+
+  ```js
+  const isEven = (x) => x % 2 === 0
+  const matchEven = matchPredicate(isEven)
+
+  const matcher = allOf(between(1, 10), matchEven)
+
+  matcher(2) ≡ {
+    matched: true,
+    value: 2,
+    results: [
+      { matched: true, value: 2 },
+      { matched: true, value: 2 }
+    ]
+  }
+
+  matcher(0) ≡ { matched: false }
+  matcher(1) ≡ { matched: false }
+  matcher(12) ≡ { matched: false }
+  matcher(undefined) ≡ { matched: false }
+  matcher({ key: 'value' }) ≡ { matched: false }
+  ```
+  ```js
+  const matcher = allOf()
+
+  matcher(undefined) ≡ { matched: true, value: undefined, results: [] }
+  matcher({ key: 'value' }) ≡ { matched: true, value: { key: 'value' }, results: [] }
+  ```
+  </details>
 
 - #### `oneOf`
   ```ts
   function oneOf<T>(expected: ...T): Matcher<T>
   ```
-  Matches first `expected` matcher that matches. Primatives in `expected` are wrapped with their corresponding `Matcher` builder. Similar to `match`
+  Matches first `expected` matcher that matches. Primatives in `expected` are wrapped with their corresponding `Matcher` builder. Always unmatched when empty `expected`. Similar to `match`.
+  <details>
+  <summary>Example</summary>
+
+  ```js
+  const matcher = oneOf('alice', 'bob')
+
+  matcher('alice') ≡ { matched: true, value: 'alice' }
+  matcher('bob') ≡ { matched: true, value: 'bob' }
+
+  matcher('eve') ≡ { matched: false }
+  matcher(undefined) ≡ { matched: false }
+  matcher({ key: 'value' }) ≡ { matched: false }
+  ```
+  ```js
+  const matcher = oneOf()
+
+  matcher(undefined) ≡ { matched: false }
+  matcher({ key: 'value' }) ≡ { matched: false }
+  ```
+  </details>
 
 - #### `when`
   ```ts

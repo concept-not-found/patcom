@@ -50,6 +50,7 @@ export const matchArray = (expected) =>
       return {
         matched: true,
         value,
+        results: [],
       }
     }
     const iterator = value[Symbol.iterator]()
@@ -99,6 +100,7 @@ export const matchObject = (expected) =>
         return {
           matched: true,
           value,
+          results: {},
         }
       } else {
         return unmatched
@@ -288,7 +290,7 @@ export const allOf = (...matchables) =>
     return {
       matched: true,
       value,
-      results
+      results,
     }
   })
 
