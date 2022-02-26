@@ -52,7 +52,7 @@ greet({ role: 'creeper' }) ≡ 'STRANGER DANGER'
 <details>
 <summary>What is <code>match</code> doing?</summary>
 
-[`match`](#match) finds the first [`when`](#when) clause that matches, then the [`Matched`](#core-concept) object is transformed into the `greeting`. If none of the `when` clauses match, the [`otherwise`](#otherwise) clause always matches.
+[`match`](#match) finds the first [`when`](#when) clause that matches, then the [`Matched`](#core-concept) object is transformed into the greeting. If none of the `when` clauses match, the [`otherwise`](#otherwise) clause always matches.
 </details>
 
 ## More expressive than `switch`
@@ -60,12 +60,13 @@ greet({ role: 'creeper' }) ≡ 'STRANGER DANGER'
 Pattern match over whole objects and not just single fields.
 
 ### Imperative `switch` & `if` 😔
+Oh noes, a [Pyramid of doom](https://en.wikipedia.org/wiki/Pyramid_of_doom_(programming))
 ```
 switch (person.role) {
   case 'student':
-    if (person.grade >= 90) {
+    if (person.grade > 90) {
       return 'Gold star'
-    } else if (person.grade >= 60) {
+    } else if (person.grade > 60) {
       return 'Keep trying'
     } else {
       return 'See me after class'
@@ -76,15 +77,16 @@ switch (person.role) {
 ```
 
 ### Declarative `match` 🙂
+Flatten Pyramid to linear cases.
 ```js
 return match (person) (
   when (
-    { role: 'student', grade: greaterThanEquals(90) },
+    { role: 'student', grade: greaterThan(90) },
     () => 'Gold star'
   ),
 
   when (
-    { role: 'student', grade: greaterThanEquals(60) },
+    { role: 'student', grade: greaterThan(60) },
     () => 'Keep trying'
   ),
 
@@ -99,9 +101,9 @@ return match (person) (
 )
 ```
 <details>
-<summary>What is <code>greaterThanEquals</code>?</summary>
+<summary>What is <code>greaterThan</code>?</summary>
 
-[`greaterThanEquals`](#greaterthanequals) is a [`Matcher`](#core-concept) provided by `patcom`. `greaterThanEquals(90)` means "match a number greater or equal to 90".
+[`greaterThan`](#greaterthan) is a [`Matcher`](#core-concept) provided by `patcom`. `greaterThan(90)` means "match a number greater than 90".
 </details>
 
 ## Match `Array`, `String`, `RegExp` and more
@@ -127,7 +129,7 @@ match (list) (
 <details>
 <summary>What is <code>rest</code>?</summary>
 
-`rest` is a special `matcher` used within array and object patterns. Array and objects are complete matches and the `rest` pattern consumes all remaining values.
+[`rest`](#rest) is a special [`Matcher`](#core-concept) used within array and object patterns. Array and objects are complete matches and the `rest` pattern consumes all remaining values.
 </details>
 
 ### `String` & `RegExp`
