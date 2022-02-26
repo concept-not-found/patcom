@@ -190,7 +190,7 @@ match (complex) (
 ```
 
 ### Matchers are extractable
-From the previous example, complex patterns can be broken down to simpler matchers.
+From the previous example, complex patterns can be broken down to simpler reusable matchers.
 ```js
 const fastSpeakers = oneOf('Ko', 'Smith')
 
@@ -274,19 +274,19 @@ match (animal) (
 Everything except for `match` is actually a [`Matcher`](#core-concept), including `when` and `otherwise`. Primative value and data types are automatically converted to a corresponding matcher.
 
 ```js
-when ({ role: 'student' }, ...) === when (matchObject({ role: 'student' }), ...)
+when({ role: 'student' }, ...) ≡ when(matchObject({ role: 'student' }), ...)
 
-when ([defined], ...) === when (matchArray([defined]), ...)
+when([defined], ...) ≡ when(matchArray([defined]), ...)
 
-when ('sit', ...) === when (matchString('sit'), ...)
+when('sit', ...) ≡ when(matchString('sit'), ...)
 
-when (/^move (\d) spaces$/, ...) === when (matchRegExp(/^move (\d) spaces$/), ...)
+when(/^move (\d) spaces$/, ...) ≡ when(matchRegExp(/^move (\d) spaces$/), ...)
 
-when (69, ...) === when (matchNumber(69), ...)
+when(69, ...) ≡ when(matchNumber(69), ...)
 
-when (69n, ...) === when (matchBigInt(69n), ...)
+when(69n, ...) ≡ when(matchBigInt(69n), ...)
 
-when (true, ...) === when (matchBoolean(true), ...)
+when(true, ...) ≡ when(matchBoolean(true), ...)
 ```
 
 Even the complex patterns are composed of simpler matchers.
@@ -346,8 +346,8 @@ Directly useable Matchers.
   ```js
   const matcher = any
 
-  matcher(undefined) === { matched: true, value: undefined }
-  matcher({ key: 'value'}) === { matched: true, value: {key: 'value' } }
+  matcher(undefined) ≡ { matched: true, value: undefined }
+  matcher({ key: 'value'}) ≡ { matched: true, value: {key: 'value' } }
   ```
   </details>
 
@@ -362,9 +362,9 @@ Directly useable Matchers.
   ```js
   const matcher = defined
 
-  matcher({ key: 'value' }) === { matched: true, value: {key: 'value' } }
+  matcher({ key: 'value' }) ≡ { matched: true, value: {key: 'value' } }
 
-  matcher(undefined) === { matched: false }
+  matcher(undefined) ≡ { matched: false }
   ```
   </details>
 
