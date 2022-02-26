@@ -1151,6 +1151,9 @@ To see a full comparsion with TC39 pattern matching proposal and unit tests to p
 ## Contributions welcome
 The following is a non-exhaustive list of features which could be implemented in the feature
 - more unit testing
+- better documentation
+  - executable examples
+- test that extract and execute samples out of documentation
 - richer set of matchers
   - as this library exports modules, the size of the npm package does not matter if consumed by a tree shaking bundler. this means matchers of any size will be accepted as long as all matchers can be organized well as a cohesive set
   - [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) matcher
@@ -1164,7 +1167,8 @@ The following is a non-exhaustive list of features which could be implemented in
 - eslint
 - typescript, either by rewrite or `.d.ts` files
 - async matchers
-- [funding](https://ko-fi.com/pyrolistical)
+
+[`patcom` is seeking funding](https://ko-fi.com/pyrolistical)
 
 ## What does `patcom` mean?
 `patcom` is short for pattern combinator, as `patcom` the same concept as [parser combinator](https://en.wikipedia.org/wiki/Parser_combinator)
