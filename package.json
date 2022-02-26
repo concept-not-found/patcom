@@ -1,6 +1,6 @@
 {
   "name": "patcom",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Pattern match by combining simpler patterns",
   "type": "module",
   "main": "index.js",
