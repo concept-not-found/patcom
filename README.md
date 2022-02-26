@@ -1091,7 +1091,7 @@ Consumes `Matcher`s to produce a value.
 ![tc39 comparision](./tc39-proposal-pattern-matching/diff.png)
 
 ### Differences
-The most notable different is `patcom` implemented [enumerable object properties](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Enumerability_and_ownership_of_properties) matching, where as TC39 pattern matching proposal implements partial object matching. See https://github.com/tc39/proposal-pattern-matching/issues/243. The [`rest`](#rest) matcher can be used to achieve partial object matching.
+The most notable different is `patcom` implemented [enumerable object properties](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Enumerability_and_ownership_of_properties) matching, where as TC39 pattern matching proposal implements partial object matching. See [tc39/proposal-pattern-matching#243](https://github.com/tc39/proposal-pattern-matching/issues/243). The [`rest`](#rest) matcher can be used to achieve partial object matching.
 
 Since `patcom` had to separate the pattern matching from destructuring, enumerable object properties matching is the most sensible. Syntactically separation of the pattern from destructuring is the biggest difference.
 
