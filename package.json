@@ -1,7 +1,15 @@
 {
   "name": "patcom",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Pattern match by combining simpler patterns",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/concept-not-found/patcom.git"
+  },
+  "bugs": {
+    "url": "https://github.com/concept-not-found/patcom/issues"
+  },
+  "homepage": "https://github.com/concept-not-found/patcom",
   "type": "module",
   "main": "index.js",
   "exports": {
