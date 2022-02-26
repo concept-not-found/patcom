@@ -670,7 +670,6 @@ Creates a `Matcher` from other `Matcher`s.
   matcher(['alice', 42]) ≡ { matched: false }
   matcher([]) ≡ { matched: false }
   matcher([42]) ≡ { matched: false }
-  matcher(['alice']) ≡ { matched: false }
   ```
   ```js
   const matcher = matchArray([42, 'alice', rest])
@@ -743,7 +742,6 @@ Creates a `Matcher` from other `Matcher`s.
   matcher({ x: 42, y: 'alice', z: true, aa: 69 }) ≡ { matched: false }
   matcher({}) ≡ { matched: false }
   matcher({ x: 42 }) ≡ { matched: false }
-  matcher({ y: 'alice' }) ≡ { matched: false }
   ```
   ```js
   const matcher = matchObject({ x: 42, y: 'alice', rest })
@@ -769,7 +767,6 @@ Creates a `Matcher` from other `Matcher`s.
 
   matcher({}) ≡ { matched: false }
   matcher({ x: 42 }) ≡ { matched: false }
-  matcher({ y: 'alice' }) ≡ { matched: false }
   ```
   ```js
   const matcher = matchObject()
@@ -781,7 +778,7 @@ Creates a `Matcher` from other `Matcher`s.
   }
 
   matcher(undefined) ≡ { matched: false }
-  matcher({ key: 'value' }) ≡ { matched: false }
+  matcher('alice') ≡ { matched: false }
   ```
   </details>
 
@@ -867,10 +864,9 @@ Creates a `Matcher` from other `Matcher`s.
     rest: [true, 69]
   }
 
+  matcher(['alice', 42]) ≡ { matched: false }
   matcher([]) ≡ { matched: false }
   matcher([42]) ≡ { matched: false }
-  matcher(['alice']) ≡ { matched: false }
-  matcher([69, 'alice']) ≡ { matched: false }
   ```
   ```js
   const matcher = matchObject({ x: 42, y: 'alice', rest })
@@ -896,7 +892,6 @@ Creates a `Matcher` from other `Matcher`s.
 
   matcher({}) ≡ { matched: false }
   matcher({ x: 42 }) ≡ { matched: false }
-  matcher({ y: 'alice' }) ≡ { matched: false }
   ```
   </details>
 
@@ -939,7 +934,7 @@ Creates a `Matcher` from other `Matcher`s.
   ```ts
   function oneOf<T>(expected: ...T): Matcher<T>
   ```
-  Matches first `expected` matcher that matches. Primatives in `expected` are wrapped with their corresponding `Matcher` builder. Always unmatched when empty `expected`. Similar to `match`.
+  Matches first `expected` matcher that matches. Primatives in `expected` are wrapped with their corresponding `Matcher` builder. Always unmatched when empty `expected`. Similar to [`match`](#match).
   <details>
   <summary>Example</summary>
 
@@ -963,7 +958,11 @@ Creates a `Matcher` from other `Matcher`s.
   ```ts
   type ValueMapper<T, R> = (value: T, matched: Matched<T>) => R
 
-  function when<T, R>(expected?: T, ...guards: ValueMapper<T, Boolean>, valueMapper: ValueMapper<T, R>): Matcher<R>
+  function when<T, R>(
+    expected?: T,
+    ...guards: ValueMapper<T, Boolean>,
+    valueMapper: ValueMapper<T, R>
+  ): Matcher<R>
   ```
   Matches if `expected` matches and satifies all the `guards`, then matched value is transformed with `valueMapper`. `guards` are optional. Primative `expected` are wrapped with their corresponding `Matcher` builder.
   <details>
@@ -1010,7 +1009,10 @@ Creates a `Matcher` from other `Matcher`s.
   ```ts
   type ValueMapper<T, R> = (value: T, matched: Matched<T>) => R
 
-  function otherwise<T, R>(..guards: ValueMapper<T, Boolean>, valueMapper: ValueMapper<T, R>): Matcher<R>
+  function otherwise<T, R>(
+    ..guards: ValueMapper<T, Boolean>,
+    valueMapper: ValueMapper<T, R>
+  ): Matcher<R>
   ```
   Matches if satifies all the `guards`, then value is transformed with `valueMapper`. `guards` are optional.
   <details>
