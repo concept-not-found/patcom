@@ -1098,16 +1098,16 @@ Since `patcom` had to separate the pattern matching from destructuring, enumerab
 #### TC39 pattern matching proposal syntax shape
 ```js
 when (
-  pattern + destructuring assignment
+  pattern + destructuring
 ) if guard:
-  expression using assignments
+  expression
 ```
 #### `patcom` syntax shape
 ```js
 when (
   pattern,
-  (destructuring assignment) => guard,
-  (destructuring assignment) => expression using assignments
+  (destructuring) => guard,
+  (destructuring) => expression
 )
 ```
 
