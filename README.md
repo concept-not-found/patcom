@@ -1146,7 +1146,7 @@ To see a full comparsion with TC39 pattern matching proposal and unit tests to p
 - when guards
 - caching iterators and object property accesses
 
-`match-iz` also offers a different match result API, where `matched` and and `value` are allowed to be functions. The same functionality in `patcom` can be found in the form of [functional mappers](./mappers.js).
+`match-iz` also offers a different match result API, where `matched` and `value` are allowed to be functions. The same functionality in `patcom` can be found in the form of [functional mappers](./mappers.js).
 
 ## Contributions welcome
 The following is a non-exhaustive list of features which could be implemented in the feature
