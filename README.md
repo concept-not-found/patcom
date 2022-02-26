@@ -1106,7 +1106,7 @@ when (
 ```js
 when (
   pattern,
-  ...guards,
+  (destructuring assignment) => guard,
   (destructuring assignment) => expression using assignments
 )
 ```
