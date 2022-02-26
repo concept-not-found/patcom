@@ -1095,14 +1095,14 @@ The most notable different is `patcom` implemented [enumerable object properties
 
 Since `patcom` had to separate the pattern matching from destructuring, enumerable object properties matching is the most sensible. Syntactically separation of the pattern from destructuring is the biggest difference.
 
-#### TC39 pattern matching proposal syntax shape
+#### TC39 pattern matching proposal `when` syntax shape
 ```js
 when (
   pattern + destructuring
 ) if guard:
   expression
 ```
-#### `patcom` syntax shape
+#### `patcom` `when` syntax shape
 ```js
 when (
   pattern,
@@ -1111,7 +1111,19 @@ when (
 )
 ```
 
-`patcom` offers `allOf` and `oneOf` matchers as subsitute for the [pattern combinators](https://github.com/tc39/proposal-pattern-matching#pattern-combinators) syntax.
+`patcom` offers [`allOf`](#allof) and [`oneOf`](#oneof) matchers as subsitute for the [pattern combinators](https://github.com/tc39/proposal-pattern-matching#pattern-combinators) syntax.
+
+#### TC39 pattern matching proposal `and` combinator + `or` combinator
+Note the usage of `and` in this example is purely to capture the match and assign it to `dir`.
+```js
+when (['go', dir and ('north' or 'east' or 'south' or 'west')]): ...
+```
+
+#### `patcom` `oneOf` matcher + destructuring
+Assignment to `dir` separated from pattern.
+```js
+when(['go', oneOf('north', 'east', 'south', 'west')], ([, dir]) => ...
+```
 
 Additional consequence of the separating the pattern from destructuring is `patcom` has no need for any of:
 - [interpolation pattern](https://github.com/tc39/proposal-pattern-matching#interpolation-pattern) syntax
