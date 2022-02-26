@@ -1088,7 +1088,7 @@ Consumes `Matcher`s to produce a value.
 `patcom` is does not implement the semantics of TC39 pattern matching proposal. However, `patcom` was inspired from TC39 pattern matching proposal and in-fact has feature parity. As `patcom` is a JavaScript library, it cannot introduce any new syntax, but the syntax remains relatively similar.
 
 ### Comparision of TC39 pattern matching proposal on left to `patcom` on right
-![tc39 comparision](./tc39-proposal-pattern-matching/diff.png)
+![tc39 comparision](https://cdn.jsdelivr.net/gh/concept-not-found/patcom/tc39-proposal-pattern-matching/diff.png)
 
 ### Differences
 The most notable different is `patcom` implemented [enumerable object properties](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Enumerability_and_ownership_of_properties) matching, where as TC39 pattern matching proposal implements partial object matching. See [tc39/proposal-pattern-matching#243](https://github.com/tc39/proposal-pattern-matching/issues/243). The [`rest`](#rest) matcher can be used to achieve partial object matching.
@@ -1139,14 +1139,14 @@ Additional consequence of the separating the pattern from destructuring is `patc
 
 Another difference is TC39 pattern matching proposal caches iterators and object property accesses. This has been implemented in `patcom` as a different variation of `match`, which is powered by `cachingOneOf`.
 
-To see a full comparsion with TC39 pattern matching proposal and unit tests to prove full feature parity, see [tc39-proposal-pattern-matching folder](./tc39-proposal-pattern-matching).
+To see a full comparsion with TC39 pattern matching proposal and unit tests to prove full feature parity, see [tc39-proposal-pattern-matching folder](https://github.com/concept-not-found/patcom/tree/master/tc39-proposal-pattern-matching).
 
 ## What about [`match-iz`](https://github.com/shuckster/match-iz)?
 `match-iz` is similarly insprired by TC39 pattern matching proposal has has many similaries to `patcom`. However, `match-iz` is not feature complete to TC39 pattern matching proposal, most notably missing is:
 - when guards
 - caching iterators and object property accesses
 
-`match-iz` also offers a different match result API, where `matched` and `value` are allowed to be functions. The same functionality in `patcom` can be found in the form of [functional mappers](./mappers.js).
+`match-iz` also offers a different match result API, where `matched` and `value` are allowed to be functions. The same functionality in `patcom` can be found in the form of [functional mappers](https://github.com/concept-not-found/patcom/blob/master/mappers.js).
 
 ## Contributions welcome
 The following is a non-exhaustive list of features which could be implemented in the feature
