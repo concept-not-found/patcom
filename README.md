@@ -648,7 +648,7 @@ Builders to create a `Matcher`.
 Creates a `Matcher` from other `Matcher`s.
 - #### `matchArray`
   ```ts
-  function matchArray<T>(expected?: T[]): Matcher<Array<T>>
+  function matchArray<T>(expected?: T[]): Matcher<T[]>
   ```
   Matches `expected` array until end or [`rest`](#rest) matcher. Primatives in `expected` are wrapped with their corresponding `Matcher` builder. Rest of properties grouped into the `rest` property on the matched result. Matches any defined array if `expected` is not provided.
   <details>
@@ -666,12 +666,11 @@ Creates a `Matcher` from other `Matcher`s.
     ]
   }
 
-  matcher(['alice', 42]) ≡ { matched: false }
   matcher([42, 'alice', true, 69]) ≡ { matched: false }
+  matcher(['alice', 42]) ≡ { matched: false }
   matcher([]) ≡ { matched: false }
   matcher([42]) ≡ { matched: false }
   matcher(['alice']) ≡ { matched: false }
-  matcher([69, 'alice']) ≡ { matched: false }
   ```
   ```js
   const matcher = matchArray([42, 'alice', rest])
@@ -695,10 +694,9 @@ Creates a `Matcher` from other `Matcher`s.
     rest: [true, 69]
   }
 
+  matcher(['alice', 42]) ≡ { matched: false }
   matcher([]) ≡ { matched: false }
   matcher([42]) ≡ { matched: false }
-  matcher(['alice']) ≡ { matched: false }
-  matcher([69, 'alice']) ≡ { matched: false }
   ```
   ```js
   const matcher = matchArray()
@@ -791,7 +789,7 @@ Creates a `Matcher` from other `Matcher`s.
   ```ts
   function not<T>(unexpected: T): Matcher<T>
   ```
-  Matches if value does not match `unexpected`.
+  Matches if value does not match `unexpected`. Primatives in `unexpected` are wrapped with their corresponding `Matcher` builder
   <details>
   <summary>Example</summary>
 
