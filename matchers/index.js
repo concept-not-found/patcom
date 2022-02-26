@@ -196,10 +196,6 @@ export const matchBigInt = (expected) =>
       expected === value
   )
 
-export const nonEmptyString = matchPredicate(
-  (value) => typeof value === 'string' || value instanceof String
-)
-
 export const matchString = (expected) =>
   matchPredicate(
     (value) =>
@@ -257,6 +253,19 @@ export const matchRegExp = (expected) =>
       expected,
       typeofValue: typeof value,
     }
+  })
+
+export const not = (matchable) =>
+  Matcher((value) => {
+    const matcher = asMatcher(matchable)
+    const result = matcher(value)
+    if (!result.matched) {
+      return {
+        matched: true,
+        value,
+      }
+    }
+    return unmatched
   })
 
 export const oneOf = (...matchables) =>

@@ -274,19 +274,26 @@ match (animal) (
 Everything except for `match` is actually a [`Matcher`](#core-concept), including `when` and `otherwise`. Primative value and data types are automatically converted to a corresponding matcher.
 
 ```js
-when({ role: 'student' }, ...) ≡ when(matchObject({ role: 'student' }), ...)
+when ({ role: 'student' }, ...) ≡
+when (matchObject({ role: 'student' }), ...)
 
-when([defined], ...) ≡ when(matchArray([defined]), ...)
+when ([defined], ...) ≡
+when (matchArray([defined]), ...)
 
-when('sit', ...) ≡ when(matchString('sit'), ...)
+when ('sit', ...) ≡
+when (matchString('sit'), ...)
 
-when(/^move (\d) spaces$/, ...) ≡ when(matchRegExp(/^move (\d) spaces$/), ...)
+when (/^move (\d) spaces$/, ...) ≡
+when (matchRegExp(/^move (\d) spaces$/), ...)
 
-when(69, ...) ≡ when(matchNumber(69), ...)
+when (69, ...) ≡
+when (matchNumber(69), ...)
 
-when(69n, ...) ≡ when(matchBigInt(69n), ...)
+when (69n, ...) ≡
+when (matchBigInt(69n), ...)
 
-when(true, ...) ≡ when(matchBoolean(true), ...)
+when (true, ...) ≡
+when (matchBoolean(true), ...)
 ```
 
 Even the complex patterns are composed of simpler matchers.
@@ -334,7 +341,7 @@ type Unmatched = {
 ```
 
 ### Built-in `Matcher`s
-Directly useable Matchers.
+Directly useable `Matcher`s.
 - #### `any`
   ```ts
   const any: Matcher<any>
@@ -496,23 +503,6 @@ Builders to create a `Matcher`.
   matcher(9) ≡ { matched: true, value: 9 }
   matcher(10) ≡ { matched: true, value: 10 }
   matcher(11) ≡ { matched: false }
-  ```
-  </details>
-
-- #### `matchNonEmptyString`
-  ```ts
-  const nonEmptyString: Matcher<string>
-  ```
-  Matches if value is a `String` that is not empty, or in other words `value !== ''`.
-  <details>
-  <summary>Example</summary>
-
-  ```js
-  const matcher = nonEmptyString
-
-  matcher('alice') ≡ { matched: true, value: 'alice' }
-
-  matcher('') ≡ { matched: false }
   ```
   </details>
 
@@ -794,6 +784,24 @@ Creates a `Matcher` from other `Matcher`s.
 
   matcher(undefined) ≡ { matched: false }
   matcher({ key: 'value' }) ≡ { matched: false }
+  ```
+  </details>
+
+- #### `not`
+  ```ts
+  function not<T>(unexpected: T): Matcher<T>
+  ```
+  Matches if value does not match `unexpected`.
+  <details>
+  <summary>Example</summary>
+
+  ```js
+  const matcher = not(oneOf('alice', 'bob'))
+
+  matcher('eve') ≡ { matched: true, value: 'eve' }
+
+  matcher('alice') ≡ { matched: false }
+  matcher('bob') ≡ { matched: false }
   ```
   </details>
 
