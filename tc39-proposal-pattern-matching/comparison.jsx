@@ -2,12 +2,24 @@ import React from 'react'
 import ReactDOMServer from 'react-dom/server.js'
 
 const Del = ({ children }) => (
-  <span style={{ paddingTop: '1px', paddingBottom: '3px', background: 'red' }}>
+  <span
+    style={{
+      paddingTop: '1px',
+      paddingBottom: '3px',
+      background: 'hsl(0, 100%, 33%)',
+    }}
+  >
     {children}
   </span>
 )
 const Add = ({ children }) => (
-  <span style={{ paddingTop: '1px', paddingBottom: '3px', background: 'blue' }}>
+  <span
+    style={{
+      paddingTop: '1px',
+      paddingBottom: '3px',
+      background: 'hsl(240, 100%, 33%)',
+    }}
+  >
     {children}
   </span>
 )
@@ -17,7 +29,7 @@ const patcom = (
       display: 'grid',
       gridAutoFlow: 'column',
       gridTemplateColumns: '1fr 1fr',
-      gridTemplateRows: 'repeat(13, 1fr)',
+      gridTemplateRows: 'repeat(21, 1fr)',
       background: 'black',
       color: 'white',
       padding: '10px',
@@ -26,8 +38,15 @@ const patcom = (
     <div>
       match (res) <Del>{'{'}</Del>
     </div>
+    <div>{'  '}when (</div>
     <div>
-      {'  '}when ({'{'} status: 200, body, <Del>...</Del>rest {'}'}
+      {'    '}
+      {'{ status: 200, body, '}
+      <Del>...</Del>
+      {'rest }'}
+    </div>
+    <div>
+      {'  '}
       <Del>):</Del>
     </div>
     <div>
@@ -35,25 +54,41 @@ const patcom = (
       handleData(body, rest)
     </div>
     <div></div>
+    <div>{'  '}when (</div>
     <div>
-      {'  '}when ({'{'} status, destination: <Del>url</Del> {'}'}
-      <Del>
-        ) if (300 {'<'}= status && status {'<'} 400):
-      </Del>
+      {'    '}
+      {'{ status, destination: '}
+      <Del>url</Del>
+      {' }'}
+    </div>
+    <div>
+      {'  '}
+      <Del>{') if (300 <= status && status < 400):'}</Del>
     </div>
     <div>{'    '}handleRedirect(url)</div>
     <div></div>
+    <div>{'  '}when (</div>
     <div>
-      {'  '}when ({'{'} status: 500 {'}'}
-      <Del>) if (</Del>!this.hasRetried<Del>): do </Del>
-      {'{'}
+      {'    '}
+      {'{ status: 500 }'}
     </div>
-    <div>{'    '}retry(req)</div>
-    <div>{'    '}this.hasRetried = true</div>
     <div>
       {'  '}
+      <Del>) if (</Del>!this.hasRetried<Del>):</Del>
+    </div>
+    <div>
+      {'    '}
+      <Del>do </Del>
+      {'{'}
+    </div>
+    <div>{'      '}retry(req)</div>
+    <div>{'      '}this.hasRetried = true</div>
+    <div>
+      {'    '}
       {'}'}
     </div>
+    <div></div>
+
     <div>
       {'  '}
       <Del>default:</Del> throwSomething()
@@ -67,13 +102,21 @@ const patcom = (
     </div>
     <div>
       {'  '}
-      when ({'{'} status: 200, body<Add>: defined</Add>, rest {'}'}
-      <Add>
-        , ({'{'} body, rest {'}'}) ={'>'}
-      </Add>
+      when (
     </div>
     <div>
       {'    '}
+      {'{ status: 200, body'}
+      <Add>: defined</Add>
+      {', rest }'}
+      <Add>,</Add>
+    </div>
+    <div>
+      {'    '}
+      <Add>({'{ body, rest }) =>'}</Add>
+    </div>
+    <div>
+      {'      '}
       handleData(body, rest)
     </div>
     <div>
@@ -82,14 +125,21 @@ const patcom = (
     </div>
     <div>
       {'  '}
-      when ({'{'} status<Add>: between(300, 400)</Add>, destination:{' '}
-      <Add>defined</Add> {'}'}
-      <Add>
-        , ({'{'} destination: url {'}'}) ={'>'}
-      </Add>
+      when (
     </div>
     <div>
       {'    '}
+      {'{ status'}
+      <Add>: between(300, 400)</Add>, destination: <Add>defined</Add>
+      {' }'}
+      <Add>,</Add>
+    </div>
+    <div>
+      {'    '}
+      <Add>{'({ destination: url }) =>'}</Add>
+    </div>
+    <div>
+      {'      '}
       handleRedirect(url)
     </div>
     <div>
@@ -98,26 +148,41 @@ const patcom = (
     </div>
     <div>
       {'  '}
-      when ({'{'} status: 500 {'}'}
-      <Add>, () ={'>'} </Add>!this.hasRetried<Add>, () ={'>'} </Add>
+      when (
+    </div>
+    <div>
+      {'    '}
+      {'{ status: 500 }'}
+      <Add>,</Add>
+    </div>
+    <div>
+      {'    '}
+      <Add>{'() =>'} </Add>!this.hasRetried<Add>,</Add>
+    </div>
+    <div>
+      {'    '}
+      <Add>{'() =>'} </Add>
       {'{'}
     </div>
     <div>
-      {'    '}
+      {'      '}
       retry(req)
     </div>
     <div>
-      {'    '}
+      {'      '}
       this.hasRetried = true
     </div>
     <div>
-      {'  '}
+      {'    '}
       {'}'}
+    </div>
+    <div>
+      {'  '}
       <Add>),</Add>
     </div>
     <div>
       {'  '}
-      <Add>otherwise (() ={'>'}</Add> throwSomething()<Add>)</Add>
+      <Add>{'otherwise (() =>'}</Add> throwSomething()<Add>)</Add>
     </div>
     <div>
       <Add>)</Add>

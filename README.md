@@ -1014,7 +1014,7 @@ Creates a `Matcher` from other `Matcher`s.
     valueMapper: ValueMapper<T, R>
   ): Matcher<R>
   ```
-  Matches if satifies all the `guards`, then value is transformed with `valueMapper`. `guards` are optional.
+  Matches if satifies all the `guards`, then value is transformed with `valueMapper`. `guards` are optional. Second parameter to `valueMapper` is the `Matched` `Result`. See [`matchRegExp`](#matchregexp), [`matchArray`](#matcharray), [`matchObject`](#matchobject), [`rest`](#rest), and [`allOf`](#allof) for extra fields on `Matched`.
   <details>
   <summary>Example</summary>
 
@@ -1044,6 +1044,7 @@ Creates a `Matcher` from other `Matcher`s.
   </details>
 
 ### `Matcher` consumers
+Consumes `Matcher`s to produce a value.
 - #### `match`
   ```ts
   const match<T, R>: (value: T) => (...clauses: Matcher<R>) => R | undefined
