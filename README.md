@@ -21,37 +21,38 @@ Let's say we have objects that represent a `Student` or a `Teacher`.
   }
 ```
 
-Using `patcom` we can match a `person` by their `role` to form a `greeting`.
+Using `patcom` we can match a `person` by their `role` to form a greeting.
 ```js
 import {match, when, otherwise, defined} from 'patcom'
 
-...
+function greet(person) {
+  return match (person) (
+    when (
+      { role: 'student' },
+      () => 'Hello fellow student.'
+    ),
 
-const greeting = match (person) (
-  when ({ role: 'student' }, () =>
-    'Hello fellow student.'
-  ),
+    when (
+      { role: 'teacher', surname: defined },
+      ({ surname }) => `Good morning ${surname} sensei.`
+    ),
 
-  when ({ role: 'teacher', surname: defined }, ({ surname }) =>
-    `Good morning ${surname} sensei.`
-  ),
-
-  otherwise (() =>
-    'STRANGER DANGER'
+    otherwise (
+      () => 'STRANGER DANGER'
+    )
   )
-)
+}
+
+
+greet({ role: 'student' }) ≡ 'Hello fellow student.'
+greet({ role: 'teacher', surname: 'Wong' }) ≡ 'Good morning Wong sensei.'
+greet({ role: 'creeper' }) ≡ 'STRANGER DANGER'
 ```
 
 <details>
 <summary>What is <code>match</code> doing?</summary>
 
 [`match`](#match) finds the first [`when`](#when) clause that matches, then the [`Matched`](#core-concept) object is transformed into the `greeting`. If none of the `when` clauses match, the [`otherwise`](#otherwise) clause always matches.
-
-If `person` is `{role: 'student'}`, then `greeting` is `'Hello fellow student'`.
-
-If `person` is `{role: 'teacher', surname: 'Wong'}`, then `greeting` is `'Good morning Wong sensei.'`
-
-If `person` is anything else, then `greeting` is `'STRANGER DANGER'`
 </details>
 
 ## More expressive than `switch`
@@ -77,20 +78,23 @@ switch (person.role) {
 ### Declarative `match` 🙂
 ```js
 return match (person) (
-  when ({ role: 'student', grade: greaterThanEquals(90) }, () =>
-    'Gold star'
+  when (
+    { role: 'student', grade: greaterThanEquals(90) },
+    () => 'Gold star'
   ),
 
-  when ({ role: 'student', grade: greaterThanEquals(60) }, () =>
-    'Keep trying'
+  when (
+    { role: 'student', grade: greaterThanEquals(60) },
+    () => 'Keep trying'
   ),
 
-  when ({ role: 'student', grade: defined }, () =>
-    'See me after class'
+  when (
+    { role: 'student', grade: defined },
+    () => 'See me after class'
   ),
 
-  otherwise ((person) =>
-    throw new Exception(`expected student, but got ${person}`)
+  otherwise (
+    (person) => throw new Exception(`expected student, but got ${person}`)
   )
 )
 ```
@@ -104,16 +108,19 @@ return match (person) (
 ### Arrays
 ```js
 match (list) (
-  when ([], () =>
-    'empty list'
+  when (
+    [],
+    () => 'empty list'
   ),
 
-  when ([defined], ([head]) =>
-    `single item ${head}`
+  when (
+    [defined],
+    ([head]) => `single item ${head}`
   ),
 
-  when ([defined, rest], ([head, ...tail]) =>
-    `multiple items`
+  when (
+    [defined, rest],
+    ([head, ...tail]) => `multiple items`
   )
 )
 ```
@@ -126,18 +133,21 @@ match (list) (
 ### `String` & `RegExp`
 ```js
 match (command) (
-  when ('sit', () =>
-    sit()
+  when (
+    'sit',
+    () => sit()
   ),
 
   // matchedRegExp is the RegExp match result
-  when (/^move (\d) spaces$/, (value, { matchedRegExp: [, distance] }) =>
-    move(distance)
+  when (
+    /^move (\d) spaces$/,
+    (value, { matchedRegExp: [, distance] }) => move(distance)
   ),
 
   // ...which means matchedRegExp has the named groups
-  when (/^eat (?<food>\w+)$/, (value, { matchedRegExp: { groups: { food } } }) =>
-    eat(food)
+  when (
+    /^eat (?<food>\w+)$/,
+    (value, { matchedRegExp: { groups: { food } } }) => eat(food)
   )
 )
 ```
@@ -145,16 +155,19 @@ match (command) (
 ### `Number`, `BigInt` & `Boolean`
 ```js
 match (value) (
-  when (69, () =>
-    'nice'
+  when (
+    69,
+    () => 'nice'
   ),
 
-  when (69n, () =>
-    'big nice'
+  when (
+    69n,
+    () => 'big nice'
   ),
 
-  when (true, () =>
-    'not nice'
+  when (
+    true,
+    () => 'not nice'
   )
 )
 ```
@@ -162,12 +175,14 @@ match (value) (
 ## Match complex data structures
 ```js
 match (complex) (
-  when ({ schedule: [{ class: 'history', rest }, rest] }, () =>
-    'history first thing on schedule? buy coffee'
+  when (
+    { schedule: [{ class: 'history', rest }, rest] },
+    () => 'history first thing on schedule? buy coffee'
   ),
 
-  when ({ schedule: [{ professor: oneOf('Ko', 'Smith'), rest }, rest] }, ({ schedule: [{ professor }] }) =>
-    `Professor ${professor} teaching? bring voice recorder`
+  when (
+    { schedule: [{ professor: oneOf('Ko', 'Smith'), rest }, rest] },
+    ({ schedule: [{ professor }] }) => `Professor ${professor} teaching? bring voice recorder`
   )
 )
 ```
@@ -178,12 +193,14 @@ From the previous example, complex patterns can be broken down to simpler matche
 const fastSpeakers = oneOf('Ko', 'Smith')
 
 match (complex) (
-  when ({ schedule: [{ class: 'history', rest }, rest] }, () =>
-    'history first thing on schedule? buy coffee'
+  when (
+    { schedule: [{ class: 'history', rest }, rest] },
+    () => 'history first thing on schedule? buy coffee'
   ),
 
-  when ({ schedule: [{ professor: fastSpeakers, rest }, rest] }, ({ schedule: [{ professor }] }) =>
-    `Professor ${professor} teaching? bring voice recorder`
+  when (
+    { schedule: [{ professor: fastSpeakers, rest }, rest] },
+    ({ schedule: [{ professor }] }) => `Professor ${professor} teaching? bring voice recorder`
   )
 )
 ```
@@ -208,12 +225,14 @@ function matchDuck(value) {
 
 function speak(animal) {
   return match (animal) (
-    when (matchDuck, () =>
-      'quack'
+    when (
+      matchDuck,
+      () => 'quack'
     ),
 
-    when (matchDragon, () =>
-      'rawr'
+    when (
+      matchDragon,
+      () => 'rawr'
     )
   )
 )
@@ -223,12 +242,14 @@ All the examples thus far have been using [`match`](#match), but `match` itself 
 
 ```js
 const speakMatcher = oneOf (
-  when (matchDuck, () =>
-    'quack'
+  when (
+    matchDuck,
+    () => 'quack'
   ),
 
-  when (matchDragon, () =>
-    'rawr'
+  when (
+    matchDragon,
+    () => 'rawr'
   )
 )
 ```
@@ -237,12 +258,13 @@ Now upon unrecognized animals, whereas `speak` previously returned `undefined`, 
 
 ```js
 match (animal) (
-  when (speakMatcher, (sound) =>
-    `the ${animal.type} goes ${sound}`
+  when (
+    speakMatcher,
+    (sound) => `the ${animal.type} goes ${sound}`
   ),
 
-  otherwise(() =>
-    `the ${animal.type} remains silent`
+  otherwise(
+    () => `the ${animal.type} remains silent`
   )
 )
 ```
@@ -271,10 +293,7 @@ Even the complex patterns are composed of simpler matchers.
 when (
   {
     schedule: [
-      {
-        class: 'history',
-        rest
-      },
+      { class: 'history', rest },
       rest
     ]
   },
@@ -286,10 +305,7 @@ when (
 when (
   matchObject({
     schedule: matchArray([
-      matchObject({
-        class: matchString('history'),
-        rest
-      }),
+      matchObject({ class: matchString('history'), rest }),
       rest
     ])
   }),
@@ -365,8 +381,9 @@ Directly useable Matchers.
   matcher({}) ≡ { matched: true, value: {} }
   matcher('') ≡ { matched: true, value: '' }
 
-  matcher(undefined) ≡ { matched: false }
+  matcher([42]) ≡ { matched: false }
   matcher({ key: 'value' }) ≡ { matched: false }
+  matcher('alice') ≡ { matched: false }
   ```
   </details>
 
@@ -387,9 +404,6 @@ Builders to create a `Matcher`.
   matcher(10) ≡ { matched: true, value: 10 }
   matcher(19) ≡ { matched: true, value: 19 }
   matcher(20) ≡ { matched: false }
-
-  matcher(undefined) ≡ { matched: false }
-  matcher({ key: 'value' }) ≡ { matched: false }
   ```
   </details>
 
@@ -406,18 +420,12 @@ Builders to create a `Matcher`.
 
   matcher('alice') ≡ { matched: true, value: 'alice' }
   matcher(42) ≡ { matched: false }
-
-  matcher(undefined) ≡ { matched: false }
-  matcher({ key: 'value' }) ≡ { matched: false }
   ```
   ```js
   const matcher = equals(42)
 
   matcher('alice') ≡ { matched: false }
   matcher(42) ≡ { matched: true, value: 42 }
-
-  matcher(undefined) ≡ { matched: false }
-  matcher({ key: 'value' }) ≡ { matched: false }
   ```
   </details>
 
@@ -435,9 +443,6 @@ Builders to create a `Matcher`.
   matcher(9) ≡ { matched: false }
   matcher(10) ≡ { matched: false }
   matcher(11) ≡ { matched: true, value: 11 }
-
-  matcher(undefined) ≡ { matched: false }
-  matcher({ key: 'value' }) ≡ { matched: false }
   ```
   </details>
 
@@ -455,9 +460,6 @@ Builders to create a `Matcher`.
   matcher(9) ≡ { matched: false }
   matcher(10) ≡ { matched: true, value: 10 }
   matcher(11) ≡ { matched: true, value: 11 }
-
-  matcher(undefined) ≡ { matched: false }
-  matcher({ key: 'value' }) ≡ { matched: false }
   ```
   </details>
 
@@ -475,9 +477,6 @@ Builders to create a `Matcher`.
   matcher(9) ≡ { matched: true, value: 9 }
   matcher(10) ≡ { matched: false }
   matcher(11) ≡ { matched: false }
-
-  matcher(undefined) ≡ { matched: false }
-  matcher({ key: 'value' }) ≡ { matched: false }
   ```
   </details>
 
@@ -495,9 +494,6 @@ Builders to create a `Matcher`.
   matcher(9) ≡ { matched: true, value: 9 }
   matcher(10) ≡ { matched: true, value: 10 }
   matcher(11) ≡ { matched: false }
-
-  matcher(undefined) ≡ { matched: false }
-  matcher({ key: 'value' }) ≡ { matched: false }
   ```
   </details>
 
@@ -515,8 +511,6 @@ Builders to create a `Matcher`.
   matcher('alice') ≡ { matched: true, value: 'alice' }
 
   matcher('') ≡ { matched: false }
-  matcher(undefined) ≡ { matched: false }
-  matcher({ key: 'value' }) ≡ { matched: false }
   ```
   </details>
 
@@ -535,8 +529,6 @@ Builders to create a `Matcher`.
   matcher(2) ≡ { matched: true, value: 2 }
 
   matcher(1) ≡ { matched: false }
-  matcher(undefined) ≡ { matched: false }
-  matcher({ key: 'value' }) ≡ { matched: false }
   ```
   </details>
 
@@ -555,8 +547,6 @@ Builders to create a `Matcher`.
 
   matcher(69n) ≡ { matched: false }
   matcher(42) ≡ { matched: false }
-  matcher(undefined) ≡ { matched: false }
-  matcher({ key: 'value' }) ≡ { matched: false }
   ```
   ```js
   const matcher = matchBigInt()
@@ -565,8 +555,6 @@ Builders to create a `Matcher`.
   matcher(69n) ≡ { matched: true, value: 69n }
 
   matcher(42) ≡ { matched: false }
-  matcher(undefined) ≡ { matched: false }
-  matcher({ key: 'value' }) ≡ { matched: false }
   ```
   </details>
 
@@ -585,8 +573,6 @@ Builders to create a `Matcher`.
 
   matcher(69) ≡ { matched: false }
   matcher(42n) ≡ { matched: false }
-  matcher(undefined) ≡ { matched: false }
-  matcher({ key: 'value' }) ≡ { matched: false }
   ```
   ```js
   const matcher = matchNumber()
@@ -595,8 +581,6 @@ Builders to create a `Matcher`.
   matcher(69) ≡ { matched: true, value: 69 }
 
   matcher(42n) ≡ { matched: false }
-  matcher(undefined) ≡ { matched: false }
-  matcher({ key: 'value' }) ≡ { matched: false }
   ```
   </details>
 
@@ -615,7 +599,6 @@ Builders to create a `Matcher`.
 
   matcher({ y: 42 }) ≡ { matched: false }
   matcher({}) ≡ { matched: false }
-  matcher(undefined) ≡ { matched: false }
   ```
   </details>
 
@@ -633,14 +616,11 @@ Builders to create a `Matcher`.
   matcher('alice') ≡ { matched: true, value: 'alice' }
 
   matcher('bob') ≡ { matched: false }
-  matcher(undefined) ≡ { matched: false }
-  matcher({ key: 'value' }) ≡ { matched: false }
   ```
   ```js
   const matcher = matchString()
 
   matcher('alice') ≡ { matched: true, value: 'alice' }
-  matcher('bob') ≡ { matched: true, value: 'bob' }
 
   matcher(undefined) ≡ { matched: false }
   matcher({ key: 'value' }) ≡ { matched: false }
@@ -661,8 +641,6 @@ Builders to create a `Matcher`.
   matcher('dear alice') ≡ { matched: true, value: 'dear alice', matchedRegExp: ['dear alice', 'alice'] }
 
   matcher('hello alice') ≡ { matched: false }
-  matcher(undefined) ≡ { matched: false }
-  matcher({ key: 'value' }) ≡ { matched: false }
   ```
   ```js
   const matcher = matchRegExp(/^dear (?<name>\w+)$/)
@@ -670,8 +648,6 @@ Builders to create a `Matcher`.
   matcher('dear alice') ≡ { matched: true, value: 'dear alice', matchedRegExp: { groups: { name: 'alice' } } }
 
   matcher('hello alice') ≡ { matched: false }
-  matcher(undefined) ≡ { matched: false }
-  matcher({ key: 'value' }) ≡ { matched: false }
   ```
   </details>
 
@@ -704,8 +680,6 @@ Creates a `Matcher` from other `Matcher`s.
   matcher([42]) ≡ { matched: false }
   matcher(['alice']) ≡ { matched: false }
   matcher([69, 'alice']) ≡ { matched: false }
-  matcher(undefined) ≡ { matched: false }
-  matcher({ key: 'value' }) ≡ { matched: false }
   ```
   ```js
   const matcher = matchArray([42, 'alice', rest])
@@ -733,8 +707,6 @@ Creates a `Matcher` from other `Matcher`s.
   matcher([42]) ≡ { matched: false }
   matcher(['alice']) ≡ { matched: false }
   matcher([69, 'alice']) ≡ { matched: false }
-  matcher(undefined) ≡ { matched: false }
-  matcher({ key: 'value' }) ≡ { matched: false }
   ```
   ```js
   const matcher = matchArray()
@@ -782,7 +754,6 @@ Creates a `Matcher` from other `Matcher`s.
   matcher({}) ≡ { matched: false }
   matcher({ x: 42 }) ≡ { matched: false }
   matcher({ y: 'alice' }) ≡ { matched: false }
-  matcher(undefined) ≡ { matched: false }
   ```
   ```js
   const matcher = matchObject({ x: 42, y: 'alice', rest })
@@ -809,7 +780,6 @@ Creates a `Matcher` from other `Matcher`s.
   matcher({}) ≡ { matched: false }
   matcher({ x: 42 }) ≡ { matched: false }
   matcher({ y: 'alice' }) ≡ { matched: false }
-  matcher(undefined) ≡ { matched: false }
   ```
   ```js
   const matcher = matchObject()
@@ -820,6 +790,7 @@ Creates a `Matcher` from other `Matcher`s.
     results: {}
   }
 
+  matcher(undefined) ≡ { matched: false }
   matcher({ key: 'value' }) ≡ { matched: false }
   ```
   </details>
@@ -833,20 +804,23 @@ Creates a `Matcher` from other `Matcher`s.
   <summary>Example</summary>
 
   ```js
-  const matcher = when({
-    headers: [
-      { name: 'cookie', value: defined },
+  const matcher = when(
+    {
+      headers: [
+        { name: 'cookie', value: defined },
+        rest
+      ],
       rest
-    ],
-    rest
-  }, (
-    { headers: [{ value: cookieValue }] },
-    { results: { headers: { rest: restOfHeaders } }, rest: restOfResponse }
-  ) => ({
-    cookieValue,
-    restOfHeaders,
-    restOfResponse
-  }))
+    },
+    (
+      { headers: [{ value: cookieValue }] },
+      { results: { headers: { rest: restOfHeaders } }, rest: restOfResponse }
+    ) => ({
+      cookieValue,
+      restOfHeaders,
+      restOfResponse
+    })
+  )
 
   matcher({
     status: 200,
@@ -889,8 +863,6 @@ Creates a `Matcher` from other `Matcher`s.
   matcher([42]) ≡ { matched: false }
   matcher(['alice']) ≡ { matched: false }
   matcher([69, 'alice']) ≡ { matched: false }
-  matcher(undefined) ≡ { matched: false }
-  matcher({ key: 'value' }) ≡ { matched: false }
   ```
   ```js
   const matcher = matchObject({ x: 42, y: 'alice', rest })
@@ -917,7 +889,6 @@ Creates a `Matcher` from other `Matcher`s.
   matcher({}) ≡ { matched: false }
   matcher({ x: 42 }) ≡ { matched: false }
   matcher({ y: 'alice' }) ≡ { matched: false }
-  matcher(undefined) ≡ { matched: false }
   ```
   </details>
 
@@ -947,8 +918,6 @@ Creates a `Matcher` from other `Matcher`s.
   matcher(0) ≡ { matched: false }
   matcher(1) ≡ { matched: false }
   matcher(12) ≡ { matched: false }
-  matcher(undefined) ≡ { matched: false }
-  matcher({ key: 'value' }) ≡ { matched: false }
   ```
   ```js
   const matcher = allOf()
@@ -973,8 +942,6 @@ Creates a `Matcher` from other `Matcher`s.
   matcher('bob') ≡ { matched: true, value: 'bob' }
 
   matcher('eve') ≡ { matched: false }
-  matcher(undefined) ≡ { matched: false }
-  matcher({ key: 'value' }) ≡ { matched: false }
   ```
   ```js
   const matcher = oneOf()
@@ -988,15 +955,83 @@ Creates a `Matcher` from other `Matcher`s.
   ```ts
   type ValueMapper<T, R> = (value: T, matched: Matched<T>) => R
 
-  function when<T, R>(expected: T, ...guards: ValueMapper<T, Boolean>, valueMapper?: ValueMapper<T, R>): Matcher<R>
+  function when<T, R>(expected?: T, ...guards: ValueMapper<T, Boolean>, valueMapper: ValueMapper<T, R>): Matcher<R>
   ```
-  Matches if `expected` matches and satifies all the `guards`, then matched value is transformed with `valueMapper`. `guards` and `valueMapper` are optional. Primative `expected` are wrapped with their corresponding `Matcher` builder.
+  Matches if `expected` matches and satifies all the `guards`, then matched value is transformed with `valueMapper`. `guards` are optional. Primative `expected` are wrapped with their corresponding `Matcher` builder.
+  <details>
+  <summary>Example</summary>
+
+  ```js
+  const matcher = when(
+    { role: 'teacher', surname: defined },
+    ({ surname }) => `Good morning ${surname}`
+  )
+
+  matcher({ role: 'teacher', surname: 'Wong' }) ≡ {
+    matched: true,
+    value: 'Good morning Wong',
+    results: {
+      role: { matched: true, value: 'teacher' },
+      surname: { matched: true, value: 'Wong' }
+    }
+  }
+
+  matcher({ role: 'student' }) ≡ { matched: false }
+  ```
+  ```js
+  const matcher = when(
+    { role: 'teacher', surname: defined },
+    ({ surname }) => surname.length === 4, // guard
+    ({ surname }) => `Good morning ${surname}`
+  )
+
+  matcher({ role: 'teacher', surname: 'Wong' }) ≡ {
+    matched: true,
+    value: 'Good morning Wong',
+    results: {
+      role: { matched: true, value: 'teacher' },
+      surname: { matched: true, value: 'Wong' }
+    }
+  }
+
+  matcher({ role: 'teacher', surname: 'Smith' }) ≡ { matched: false }
+  ```
+  </details>
 
 - #### `otherwise`
   ```ts
-  function otherwise<T, R>(...guards: (value: T) => Boolean, valueMapper?: (value: T) => R): Matcher<R>
+  type ValueMapper<T, R> = (value: T, matched: Matched<T>) => R
+
+  function otherwise<T, R>(..guards: ValueMapper<T, Boolean>, valueMapper: ValueMapper<T, R>): Matcher<R>
   ```
-  Matches if satifies all the `guards`, then value is transformed with `valueMapper`. `guards` and `valueMapper` are optional. Primative `expected` are wrapped with their corresponding `Matcher` builder.
+  Matches if satifies all the `guards`, then value is transformed with `valueMapper`. `guards` are optional.
+  <details>
+  <summary>Example</summary>
+
+  ```js
+  const matcher = otherwise(
+    ({ surname }) => `Good morning ${surname}`
+  )
+
+  matcher({ role: 'teacher', surname: 'Wong' }) ≡ {
+    matched: true,
+    value: 'Good morning Wong'
+  }
+  ```
+  ```js
+  const matcher = otherwise(
+    ({ surname }) => surname.length === 4, // guard
+    ({ surname }) => `Good morning ${surname}`
+  )
+
+  matcher({ role: 'teacher', surname: 'Wong' }) ≡ {
+    matched: true,
+    value: 'Good morning Wong'
+  }
+
+  matcher({ role: 'teacher', surname: 'Smith' }) ≡ { matched: false }
+  ```
+  </details>
 
 ### `Matcher` consumers
 - #### `match`
