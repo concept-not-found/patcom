@@ -1116,13 +1116,20 @@ when (
 #### TC39 pattern matching proposal `and` combinator + `or` combinator
 Note the usage of `and` in this example is purely to capture the match and assign it to `dir`.
 ```js
-when (['go', dir and ('north' or 'east' or 'south' or 'west')]): ...
+when (
+  ['go', dir and ('north' or 'east' or 'south' or 'west')]
+):
+  ...use dir
 ```
 
 #### `patcom` `oneOf` matcher + destructuring
 Assignment to `dir` separated from pattern.
 ```js
-when(['go', oneOf('north', 'east', 'south', 'west')], ([, dir]) => ...
+when (
+  ['go', oneOf('north', 'east', 'south', 'west')],
+  ([, dir]) =>
+    ...use dir
+)
 ```
 
 Additional consequence of the separating the pattern from destructuring is `patcom` has no need for any of:
