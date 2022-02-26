@@ -1157,3 +1157,7 @@ The following is a non-exhaustive list of features which could be implemented in
 - eslint
 - typescript, either by rewrite or `.d.ts` files
 - async matchers
+- [funding](https://ko-fi.com/pyrolistical)
+
+## What does `patcom` mean?
+`patcom` is short for pattern combinator, as `patcom` the same concept as [parser combinator](https://en.wikipedia.org/wiki/Parser_combinator)
