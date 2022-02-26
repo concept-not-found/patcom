@@ -6,7 +6,7 @@ const Del = ({ children }) => (
     style={{
       paddingTop: '1px',
       paddingBottom: '3px',
-      background: 'hsl(0, 100%, 33%)',
+      background: 'hsl(0, 50%, 30%)',
     }}
   >
     {children}
@@ -17,7 +17,7 @@ const Add = ({ children }) => (
     style={{
       paddingTop: '1px',
       paddingBottom: '3px',
-      background: 'hsl(240, 100%, 33%)',
+      background: 'hsl(240, 50%, 30%)',
     }}
   >
     {children}
