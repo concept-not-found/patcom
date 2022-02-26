@@ -1,5 +1,9 @@
 node_modules/
 dist/
+coverage/
+.github/
 **/*.spec.js
 **/test-utils.js
 tc39-proposal-pattern-matching/sample.js
+tc39-proposal-pattern-matching/comparison.jsx
+.pretter*

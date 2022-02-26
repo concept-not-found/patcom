@@ -4,6 +4,10 @@
   "description": "Pattern match by combining simpler patterns",
   "type": "module",
   "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./tc39-proposal-pattern-matching": "./tc39-proposal-pattern-matching/index.js"
+  },
   "scripts": {
     "build": "build() { esbuild $1 | node --input-type=module > dist/comparison.html; }; build",
     "start": "nodemon --exec 'npm run build' ./tc39-proposal-pattern-matching/comparison.jsx",
