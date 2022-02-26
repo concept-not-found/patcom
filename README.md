@@ -1036,9 +1036,41 @@ Creates a `Matcher` from other `Matcher`s.
 ### `Matcher` consumers
 - #### `match`
   ```ts
-  function match<T>(...clauses: Matcher<T>): T | undefined
+  const match<T, R>: (value: T) => (...clauses: Matcher<R>) => R | undefined
   ```
-  Returns a matched value for the first clause that matches, or `undefined` if all are unmatched. Similar to `oneOf`.
+  Returns a matched value for the first clause that matches, or `undefined` if all are unmatched. `match` is to be used as a top level expression and is not composable. To create a matcher composed of clauses use [`oneOf`](#oneof).
+  <details>
+  <summary>Example</summary>
+
+  ```js
+  function meme(value) {
+    return match (value) (
+      when (69, () => 'nice'),
+      otherwise (() => 'meh')
+    )
+  }
+
+  meme(69) ≡ 'nice'
+  meme(42) ≡ 'meh'
+  ```
+  ```js
+  function meme(value) {
+    return match (value) (
+      when (69, () => 'nice')
+    )
+  }
+
+  meme(69) ≡ 'nice'
+  meme(42) ≡ undefined
+
+  const memeMatcher = oneOf (
+    when (69, () => 'nice')
+  )
+
+  memeMatcher(69) ≡ { matched: true, value: 'nice' }
+  memeMatcher(42) ≡ { matched: false }
+  ```
+  </details>
 
 ## What about [TC39 pattern matching proposal](https://github.com/tc39/proposal-pattern-matching)?
 
