@@ -24,11 +24,16 @@ export const asMatcher = (matchable) => {
   if (matchable instanceof RegExp) {
     return matchRegExp(matchable)
   }
+  if (matchable instanceof String) {
+    return matchString(matchable)
+  }
   switch (typeof matchable) {
     case 'boolean':
+      return matchBoolean(matchable)
     case 'number':
+      return matchNumber(matchable)
     case 'string':
-      return equals(matchable)
+      return matchString(matchable)
     case 'object':
       return matchObject(matchable)
   }
@@ -199,9 +204,9 @@ export const matchBigInt = (expected) =>
 export const matchString = (expected) =>
   matchPredicate(
     (value) =>
-      (expected === undefined && typeof value === 'string') ||
-      value instanceof String ||
-      expected === value
+      (expected === undefined &&
+        (typeof value === 'string' || value instanceof String)) ||
+      String(expected) === String(value)
   )
 
 export const any = matchPredicate(() => true)
