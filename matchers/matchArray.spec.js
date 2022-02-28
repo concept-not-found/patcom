@@ -1,6 +1,6 @@
 import { expectMatched, expectUnmatched } from './test-utils.js'
 
-import { matchArray, maybe, some, rest } from './index.js'
+import { matchArray, maybe, group, some, rest } from './index.js'
 
 describe('matchArray', () => {
   test('empty expected matches any array', () => {
@@ -213,6 +213,27 @@ describe('matchArray', () => {
     const matcher = matchArray([1, maybe(2)])
     expectMatched(matcher([1, 2]))
     expectMatched(matcher([1]))
+  })
+
+  test('matched group of matching elements', () => {
+    const matcher = matchArray([group(1, 2)])
+    expectMatched(matcher([1, 2]))
+  })
+
+  test('unmatched when not enough elements match group', () => {
+    const matcher = matchArray([group(1, 2)])
+    expectUnmatched(matcher([]))
+    expectUnmatched(matcher([1]))
+  })
+
+  test('matched group of matching elements before other elements', () => {
+    const matcher = matchArray([group(1, 2), 3])
+    expectMatched(matcher([1, 2, 3]))
+  })
+
+  test('matched group of matching elements after other elements', () => {
+    const matcher = matchArray([1, group(2, 3)])
+    expectMatched(matcher([1, 2, 3]))
   })
 
   test('matched some of matching elements', () => {
