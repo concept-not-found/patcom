@@ -1,4 +1,4 @@
-import { expectMatched } from './test-utils.js'
+import { expectMatched, expectUnmatched } from './test-utils.js'
 
 import { allOf, matchProp } from '../index.js'
 
@@ -51,6 +51,6 @@ describe('allOf', () => {
   test('unmatched when one RegExp is unmatched', () => {
     const matcher = allOf(/hello/, /world/)
     const result = matcher('hello bob')
-    expect(result.matched).toBe(false)
+    expectUnmatched(result)
   })
 })
