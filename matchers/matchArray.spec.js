@@ -71,19 +71,12 @@ describe('matchArray', () => {
     expect(id).toBe('42')
   })
 
-  test('only contains nested matched result fields up to rest', () => {
-    const matcher = matchArray([/^hello (?<id>\d+)$/, rest])
-    const result = matcher(['hello 42', 69])
-    expectMatched(result)
-    expect(result.results.length).toBe(1)
-  })
-
   test('rest matches remaining element', () => {
     const matcher = matchArray([1, rest])
     const result = matcher([1, 2, 3])
     expectMatched(result)
     expect(result.value).toEqual([1, 2, 3])
-    expect(result.rest).toEqual([2, 3])
+    expect(result.results[1].value).toEqual([2, 3])
   })
 
   test('rest matches remaining element even if already complete match', () => {
@@ -91,7 +84,7 @@ describe('matchArray', () => {
     const result = matcher([1, 2, 3])
     expectMatched(result)
     expect(result.value).toEqual([1, 2, 3])
-    expect(result.rest).toEqual([])
+    expect(result.results[3].value).toEqual([])
   })
 
   test('empty expected matches any iterator', () => {
@@ -192,17 +185,21 @@ describe('matchArray', () => {
     expectMatched(result)
     expect(result.results[0]).toEqual({
       matched: true,
-      value: 1,
+      value: [1],
+      result: {
+        matched: true,
+        value: 1,
+      },
     })
   })
 
-  test('matched maybe is present in result as undefined value when element is not present', () => {
+  test('matched maybe is present in result as empty array when element is not present', () => {
     const matcher = matchArray([maybe(1)])
     const result = matcher([])
     expectMatched(result)
     expect(result.results[0]).toEqual({
       matched: true,
-      value: undefined,
+      value: [],
     })
   })
 

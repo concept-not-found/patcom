@@ -147,7 +147,7 @@ match (list) (
 <details>
 <summary>What is <code>rest</code>?</summary>
 
-[`rest`](#rest) is a special [`Matcher`](#core-concept) used within array and object patterns. Array and objects are complete matches and the `rest` pattern consumes all remaining values.
+[`rest`](#rest) is an [`IteratorMatcher`](#core-concept) used within array and object patterns. Array and objects are complete matches and the `rest` pattern consumes all remaining values.
 
 </details>
 
@@ -379,6 +379,13 @@ type Matched<T> = {
 type Unmatched = {
   matched: false
 }
+```
+
+`IteratorMatcher` is a specialized `Matcher` subtype. `IteratorMatcher` direct consumes the iterator in `matchArray`. It is used to implement `maybe`, `rest` and `some`.
+
+<!-- prettier-ignore -->
+```ts
+type IteratorMatcher<T> = (value: Iterable<T>) => Result<T[]>
 ```
 
 ### Built-in `Matcher`s
@@ -784,7 +791,7 @@ Creates a `Matcher` from other `Matcher`s.
   function matchArray<T>(expected?: T[]): Matcher<T[]>
   ```
 
-  Matches `expected` array until end or [`rest`](#rest) matcher. Primatives in `expected` are wrapped with their corresponding `Matcher` builder. Rest of properties grouped into the `rest` property on the matched result. Matches any defined array if `expected` is not provided.
+  Matches `expected` array completely. Primatives in `expected` are wrapped with their corresponding `Matcher` builder. `expected` array can also include [`IteratorMatcher`](#core-concept)s which can consume multiple elements. Matches any defined array if `expected` is not provided.
   <details>
   <summary>Example</summary>
 
@@ -816,23 +823,76 @@ Creates a `Matcher` from other `Matcher`s.
     value: [42, 'alice'],
     results: [
       { matched: true, value: 42 },
-      { matched: true, value: 'alice' }
-    ],
-    rest: []
+      { matched: true, value: 'alice' },
+      { matched: true, value: [] }
+    ]
   }
   matcher([42, 'alice', true, 69]) ≡ {
     matched: true,
     value: [42, 'alice', true, 69],
     results: [
       { matched: true, value: 42 },
-      { matched: true, value: 'alice' }
-    ],
-    rest: [true, 69]
+      { matched: true, value: 'alice' },
+      { matched: true, value: [true, 69] }
+    ]
   }
 
   matcher(['alice', 42]) ≡ { matched: false }
   matcher([]) ≡ { matched: false }
   matcher([42]) ≡ { matched: false }
+  ```
+
+  <!-- prettier-ignore -->
+  ```js
+  const matcher = matchArray([maybe('alice'), 'bob'])
+
+  matcher(['alice', 'bob']) ≡ {
+    matched: true,
+    value: ['alice', 'bob'],
+    results: [
+      {
+        matched: true,
+        value: ['alice'],
+        result: { matched: true, value: 'alice' },
+      },
+      { matched: true, value: 'bob' }
+    ]
+  }
+  matcher(['bob']) ≡ {
+    matched: true,
+    value: ['bob'],
+    results: [
+      { matched: true, value: [] },
+      { matched: true, value: 'bob' }
+    ]
+  }
+
+  matcher(['eve', 'bob']) ≡ { matched: false }
+  matcher(['eve']) ≡ { matched: false }
+  ```
+
+  <!-- prettier-ignore -->
+  ```js
+  const matcher = matchArray([some('alice'), 'bob'])
+
+  matcher(['alice', 'alice', 'bob']) ≡ {
+    matched: true,
+    value: ['alice', 'alice', 'bob'],
+    results: [
+      {
+        matched: true,
+        value: ['alice', 'alice'],
+        results: [
+          { matched: true, value: 'alice' },
+          { matched: true, value: 'alice' }
+        ]
+      },
+      { matched: true, value: 'bob' }
+    ]
+  }
+
+  matcher(['eve', 'bob']) ≡ { matched: false }
+  matcher(['bob']) ≡ { matched: false }
   ```
 
   <!-- prettier-ignore -->
@@ -858,7 +918,7 @@ Creates a `Matcher` from other `Matcher`s.
   function matchObject<T>(expected?: T): Matcher<T>
   ```
 
-  Matches `expected` enumerable object properties completely or partially with [`rest`](#rest) matcher. Primatives in `expected` are wrapped with their corresponding `Matcher` builder. Rest of properties grouped into the `rest` property on the matched result. Matches any defined object if `expected` is not provided.
+  Matches `expected` enumerable object properties completely or partially with [`rest`](#rest) matcher. Primatives in `expected` are wrapped with their corresponding `Matcher` builder. Rest of properties can be founds in `results` object. Matches any defined object if `expected` is not provided.
   <details>
   <summary>Example</summary>
 
@@ -897,22 +957,37 @@ Creates a `Matcher` from other `Matcher`s.
     value: { x: 42, y: 'alice' },
     results: {
       x: { matched: true, value: 42 },
-      y: { matched: true, value: 'alice' }
-    },
-    rest: {}
+      y: { matched: true, value: 'alice' },
+      rest: { matched: true, value: {} }
+    }
   }
   matcher({ x: 42, y: 'alice', z: true, aa: 69 }) ≡ {
     matched: true,
     value: { x: 42, y: 'alice', z: true, aa: 69 },
     results: {
       x: { matched: true, value: 42 },
-      y: { matched: true, value: 'alice' }
-    },
-    rest: { z: true, aa: 69 }
+      y: { matched: true, value: 'alice' },
+      rest: { matched: true, value: { z: true, aa: 69 } }
+    }
   }
 
   matcher({}) ≡ { matched: false }
   matcher({ x: 42 }) ≡ { matched: false }
+  ```
+
+  <!-- prettier-ignore -->
+  ```js
+  const matcher = matchObject({ x: 42, y: 'alice', customRestKey: rest })
+
+  matcher({ x: 42, y: 'alice', z: true }) ≡ {
+    matched: true,
+    value: { x: 42, y: 'alice', z: true },
+    results: {
+      x: { matched: true, value: 42 },
+      y: { matched: true, value: 'alice' },
+      customRestKey: { matched: true, value: {z: true} }
+    }
+  }
   ```
 
   <!-- prettier-ignore -->
@@ -938,7 +1013,7 @@ Creates a `Matcher` from other `Matcher`s.
   function maybe<T>(expected: T): Matcher<T | undefined>
   ```
 
-  A special `Matcher` that is only valid as element of [`matchArray`](#matcharray). This consumes an element in the array if it matches `expected`, otherwise does nothing. The unmatched element can be consumed by the next matcher. Similar to regular expression `?` operator.
+  An [`IteratorMatcher`](#core-concept) that is only valid as element of [`matchArray`](#matcharray). This consumes an element in the array if it matches `expected`, otherwise does nothing. The unmatched element can be consumed by the next matcher. Similar to regular expression `?` operator.
   <details>
   <summary>Example</summary>
 
@@ -950,7 +1025,11 @@ Creates a `Matcher` from other `Matcher`s.
     matched: true,
     value: ['alice', 'bob'],
     results: [
-      { matched: true, value: 'alice' },
+      {
+        matched: true,
+        value: ['alice'],
+        result: { matched: true, value: 'alice' },
+      },
       { matched: true, value: 'bob' }
     ]
   }
@@ -958,7 +1037,7 @@ Creates a `Matcher` from other `Matcher`s.
     matched: true,
     value: ['bob'],
     results: [
-      { matched: true, value: undefined },
+      { matched: true, value: [] },
       { matched: true, value: 'bob' }
     ]
   }
@@ -999,7 +1078,7 @@ Creates a `Matcher` from other `Matcher`s.
   const rest: Matcher<any>
   ```
 
-  A special `Matcher` that is only valid as element of [`matchArray`](#matcharray) or property of [`matchObject`](#matchobject). This consumes the remaining elements/properties to prefix matching of arrays and partial matching of objects.
+  An [`IteratorMatcher`](#core-concept) that is only valid as element of [`matchArray`](#matcharray) or property of [`matchObject`](#matchobject). This consumes the remaining elements/properties to prefix matching of arrays and partial matching of objects.
   <details>
   <summary>Example</summary>
 
@@ -1015,7 +1094,14 @@ Creates a `Matcher` from other `Matcher`s.
     },
     (
       { headers: [{ value: cookieValue }] },
-      { results: { headers: { rest: restOfHeaders } }, rest: restOfResponse }
+      {
+        results: {
+          headers: {
+            results: [, { value: restOfHeaders }],
+          },
+          rest: { value: restOfResponse },
+        },
+      }
     ) => ({
       cookieValue,
       restOfHeaders,
@@ -1048,18 +1134,18 @@ Creates a `Matcher` from other `Matcher`s.
     value: [42, 'alice'],
     results: [
       { matched: true, value: 42 },
-      { matched: true, value: 'alice' }
-    ],
-    rest: []
+      { matched: true, value: 'alice' },
+      { matched: true, value: [] }
+    ]
   }
   matcher([42, 'alice', true, 69]) ≡ {
     matched: true,
     value: [42, 'alice', true, 69],
     results: [
       { matched: true, value: 42 },
-      { matched: true, value: 'alice' }
-    ],
-    rest: [true, 69]
+      { matched: true, value: 'alice' },
+      { matched: true, value: [true, 69] }
+    ]
   }
 
   matcher(['alice', 42]) ≡ { matched: false }
@@ -1076,22 +1162,37 @@ Creates a `Matcher` from other `Matcher`s.
     value: { x: 42, y: 'alice' },
     results: {
       x: { matched: true, value: 42 },
-      y: { matched: true, value: 'alice' }
-    },
-    rest: {}
+      y: { matched: true, value: 'alice' },
+      rest: { matched: true, value: {} }
+    }
   }
   matcher({ x: 42, y: 'alice', z: true, aa: 69 }) ≡ {
     matched: true,
     value: { x: 42, y: 'alice', z: true, aa: 69 },
     results: {
       x: { matched: true, value: 42 },
-      y: { matched: true, value: 'alice' }
-    },
-    rest: { z: true, aa: 69 }
+      y: { matched: true, value: 'alice' },
+      rest: { matched: true, value: { z: true, aa: 69 } }
+    }
   }
 
   matcher({}) ≡ { matched: false }
   matcher({ x: 42 }) ≡ { matched: false }
+  ```
+
+  <!-- prettier-ignore -->
+  ```js
+  const matcher = matchObject({ x: 42, y: 'alice', customRestKey: rest })
+
+  matcher({ x: 42, y: 'alice', z: true }) ≡ {
+    matched: true,
+    value: { x: 42, y: 'alice', z: true },
+    results: {
+      x: { matched: true, value: 42 },
+      y: { matched: true, value: 'alice' },
+      customRestKey: { matched: true, value: {z: true} }
+    }
+  }
   ```
 
   </details>
@@ -1103,7 +1204,7 @@ Creates a `Matcher` from other `Matcher`s.
   function some<T>(expected: T): Matcher<T[]>
   ```
 
-  A special `Matcher` that is only valid as element of [`matchArray`](#matcharray). This consumes all consecutive element matching `expected` in the array until it reaches the end or encounters an unmatched element. The unmatched element can be consumed by the next matcher. At least one element must match. Similar to regular expression `+` operator.
+  An [`IteratorMatcher`](#core-concept) that is only valid as element of [`matchArray`](#matcharray). This consumes all consecutive element matching `expected` in the array until it reaches the end or encounters an unmatched element. The unmatched element can be consumed by the next matcher. At least one element must match. Similar to regular expression `+` operator.
   <details>
   <summary>Example</summary>
 
@@ -1276,7 +1377,7 @@ Creates a `Matcher` from other `Matcher`s.
   ): Matcher<R>
   ```
 
-  Matches if satifies all the `guards`, then value is transformed with `valueMapper`. `guards` are optional. Second parameter to `valueMapper` is the `Matched` `Result`. See [`matchRegExp`](#matchregexp), [`matchArray`](#matcharray), [`matchObject`](#matchobject), [`rest`](#rest), and [`allOf`](#allof) for extra fields on `Matched`.
+  Matches if satifies all the `guards`, then value is transformed with `valueMapper`. `guards` are optional. Second parameter to `valueMapper` is the `Matched` `Result`. See [`matchRegExp`](#matchregexp), [`matchArray`](#matcharray), [`matchObject`](#matchobject) and [`allOf`](#allof) for extra fields on `Matched`.
   <details>
   <summary>Example</summary>
 

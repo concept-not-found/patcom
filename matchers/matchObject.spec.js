@@ -47,13 +47,6 @@ describe('matchObject', () => {
     expect(id).toBe('42')
   })
 
-  test('only contains nested matched result fields up to rest', () => {
-    const matcher = matchObject({ x: /^hello (?<id>\d+)$/, rest })
-    const result = matcher({ x: 'hello 42', y: 69 })
-    expectMatched(result)
-    expect(Object.keys(result.results).length).toBe(1)
-  })
-
   test('unmatched empty object with expected field', () => {
     const matcher = matchObject({ x: defined })
     const result = matcher({})
@@ -69,7 +62,7 @@ describe('matchObject', () => {
       y: 2,
       z: 3,
     })
-    expect(result.rest).toEqual({
+    expect(result.results.rest.value).toEqual({
       y: 2,
       z: 3,
     })
@@ -84,6 +77,6 @@ describe('matchObject', () => {
       y: 2,
       z: 3,
     })
-    expect(result.rest).toEqual({})
+    expect(result.results.rest.value).toEqual({})
   })
 })

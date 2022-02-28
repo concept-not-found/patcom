@@ -2,14 +2,13 @@ export default (source) => {
   const previous = []
   let sourceIndex = 0
   let sourceDone = false
-  let mark = 0
   let index = 0
   return {
-    mark() {
-      mark = index
+    get now() {
+      return index
     },
-    reset() {
-      index = mark
+    jump(time = 0) {
+      index = time
     },
     next() {
       if (index === sourceIndex) {
