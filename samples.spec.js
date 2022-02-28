@@ -1,5 +1,6 @@
 import { expectUnmatched } from './matchers/test-utils.js'
 import {
+  group,
   some,
   maybe,
   matchArray,
@@ -211,6 +212,32 @@ describe('samples', () => {
     })
 
     expectUnmatched(matcher(['eve', 'bob']))
+    expectUnmatched(matcher(['bob']))
+  })
+
+  test('group example', () => {
+    const matcher = matchArray([group('alice', 'fred'), 'bob'])
+
+    expect(matcher(['alice', 'fred', 'bob'])).toEqual({
+      matched: true,
+      value: ['alice', 'fred', 'bob'],
+      results: [
+        {
+          matched: true,
+          value: ['alice', 'fred'],
+          results: [
+            { matched: true, value: 'alice' },
+            { matched: true, value: 'fred' },
+          ],
+        },
+        { matched: true, value: 'bob' },
+      ],
+    })
+
+    expectUnmatched(matcher(['alice', 'eve', 'bob']))
+    expectUnmatched(matcher(['eve', 'fred', 'bob']))
+    expectUnmatched(matcher(['alice', 'bob']))
+    expectUnmatched(matcher(['fred', 'bob']))
     expectUnmatched(matcher(['bob']))
   })
 })

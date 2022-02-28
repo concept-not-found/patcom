@@ -80,6 +80,31 @@ export const maybe = (expected) =>
     }
   })
 
+export const group = (...expected) =>
+  IteratorMatcher((iterator) => {
+    const values = []
+    const results = []
+    for (const element of expected) {
+      const { value, done } = iterator.next()
+      if (done) {
+        return unmatched
+      }
+      const matcher = asMatcher(element)
+      const result = matcher(value)
+      if (result.matched) {
+        values.push(result.value)
+        results.push(result)
+      } else {
+        return unmatched
+      }
+    }
+    return {
+      matched: true,
+      value: values,
+      results,
+    }
+  })
+
 export const some = (expected) =>
   IteratorMatcher((iterator) => {
     const values = []

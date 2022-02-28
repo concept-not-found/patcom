@@ -381,7 +381,7 @@ type Unmatched = {
 }
 ```
 
-`IteratorMatcher` is a specialized `Matcher` subtype. `IteratorMatcher` direct consumes the iterator in `matchArray`. It is used to implement `maybe`, `rest` and `some`.
+`IteratorMatcher` is a specialized `Matcher` subtype. `IteratorMatcher` direct consumes the iterator in `matchArray`. It is used to implement `group`, `maybe`, `rest` and `some`.
 
 <!-- prettier-ignore -->
 ```ts
@@ -1002,6 +1002,46 @@ Creates a `Matcher` from other `Matcher`s.
 
   matcher(undefined) ≡ { matched: false }
   matcher('alice') ≡ { matched: false }
+  ```
+
+  </details>
+
+- #### `group`
+
+  <!-- prettier-ignore -->
+  ```ts
+  function group<T>(...expected: T[]): Matcher<T[]>
+  ```
+
+  An [`IteratorMatcher`](#core-concept) that is only valid as element of [`matchArray`](#matcharray). This consumes all a sequence of element matching `expected` in the array. Similar to regular expression group.
+  <details>
+  <summary>Example</summary>
+
+  <!-- prettier-ignore -->
+  ```js
+  const matcher = matchArray([group('alice', 'fred'), 'bob'])
+
+  matcher(['alice', 'fred', 'bob']) ≡ {
+    matched: true,
+    value: ['alice', 'fred', 'bob'],
+    results: [
+      {
+        matched: true,
+        value: ['alice', 'fred'],
+        results: [
+          { matched: true, value: 'alice' },
+          { matched: true, value: 'fred' }
+        ]
+      },
+      { matched: true, value: 'bob' }
+    ]
+  }
+
+  matcher(['alice', 'eve', 'bob']) ≡ { matched: false }
+  matcher(['eve', 'fred', 'bob']) ≡ { matched: false }
+  matcher(['alice', 'bob']) ≡ { matched: false }
+  matcher(['fred', 'bob']) ≡ { matched: false }
+  matcher(['bob']) ≡ { matched: false }
   ```
 
   </details>
