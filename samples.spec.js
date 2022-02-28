@@ -62,9 +62,9 @@ describe('samples', () => {
       (
         { headers: [{ value: cookieValue }] },
         {
-          results: {
+          result: {
             headers: {
-              results: [, { value: restOfHeaders }],
+              result: [, { value: restOfHeaders }],
             },
             rest: { value: restOfResponse },
           },
@@ -101,7 +101,7 @@ describe('samples', () => {
       expect(matcher([42, 'alice'])).toEqual({
         matched: true,
         value: [42, 'alice'],
-        results: [
+        result: [
           { matched: true, value: 42 },
           { matched: true, value: 'alice' },
           { matched: true, value: [] },
@@ -110,7 +110,7 @@ describe('samples', () => {
       expect(matcher([42, 'alice', true, 69])).toEqual({
         matched: true,
         value: [42, 'alice', true, 69],
-        results: [
+        result: [
           { matched: true, value: 42 },
           { matched: true, value: 'alice' },
           { matched: true, value: [true, 69] },
@@ -130,7 +130,7 @@ describe('samples', () => {
       expect(matcher({ x: 42, y: 'alice' })).toEqual({
         matched: true,
         value: { x: 42, y: 'alice' },
-        results: {
+        result: {
           x: { matched: true, value: 42 },
           y: { matched: true, value: 'alice' },
           rest: { matched: true, value: {} },
@@ -139,7 +139,7 @@ describe('samples', () => {
       expect(matcher({ x: 42, y: 'alice', z: true, aa: 69 })).toEqual({
         matched: true,
         value: { x: 42, y: 'alice', z: true, aa: 69 },
-        results: {
+        result: {
           x: { matched: true, value: 42 },
           y: { matched: true, value: 'alice' },
           rest: { matched: true, value: { z: true, aa: 69 } },
@@ -155,7 +155,7 @@ describe('samples', () => {
       expect(matcher({ x: 42, y: 'alice', z: true })).toEqual({
         matched: true,
         value: { x: 42, y: 'alice', z: true },
-        results: {
+        result: {
           x: { matched: true, value: 42 },
           y: { matched: true, value: 'alice' },
           customRestKey: { matched: true, value: { z: true } },
@@ -164,80 +164,304 @@ describe('samples', () => {
     })
   })
 
-  test('maybe example', () => {
-    const matcher = matchArray([maybe('alice'), 'bob'])
+  describe('maybe example', () => {
+    test('only maybe', () => {
+      const matcher = matchArray([maybe('alice'), 'bob'])
 
-    expect(matcher(['alice', 'bob'])).toEqual({
-      matched: true,
-      value: ['alice', 'bob'],
-      results: [
-        {
-          matched: true,
-          value: ['alice'],
-          result: { matched: true, value: 'alice' },
-        },
-        { matched: true, value: 'bob' },
-      ],
+      expect(matcher(['alice', 'bob'])).toEqual({
+        matched: true,
+        value: ['alice', 'bob'],
+        result: [
+          {
+            matched: true,
+            value: ['alice'],
+            result: { matched: true, value: 'alice' },
+          },
+          { matched: true, value: 'bob' },
+        ],
+      })
+      expect(matcher(['bob'])).toEqual({
+        matched: true,
+        value: ['bob'],
+        result: [
+          { matched: true, value: [] },
+          { matched: true, value: 'bob' },
+        ],
+      })
+
+      expectUnmatched(matcher(['eve', 'bob']))
+      expectUnmatched(matcher(['eve']))
     })
-    expect(matcher(['bob'])).toEqual({
-      matched: true,
-      value: ['bob'],
-      results: [
-        { matched: true, value: [] },
-        { matched: true, value: 'bob' },
-      ],
+    test('maybe of group', () => {
+      const matcher = matchArray([maybe(group('alice', 'fred')), 'bob'])
+
+      expect(matcher(['alice', 'fred', 'bob'])).toEqual({
+        matched: true,
+        value: ['alice', 'fred', 'bob'],
+        result: [
+          {
+            matched: true,
+            value: ['alice', 'fred'],
+            result: {
+              matched: true,
+              value: ['alice', 'fred'],
+              result: [
+                { matched: true, value: 'alice' },
+                { matched: true, value: 'fred' },
+              ],
+            },
+          },
+          { matched: true, value: 'bob' },
+        ],
+      })
+      expect(matcher(['bob'])).toEqual({
+        matched: true,
+        value: ['bob'],
+        result: [
+          { matched: true, value: [] },
+          { matched: true, value: 'bob' },
+        ],
+      })
     })
 
-    expectUnmatched(matcher(['eve', 'bob']))
-    expectUnmatched(matcher(['eve']))
+    test('maybe of some', () => {
+      const matcher = matchArray([maybe(some('alice')), 'bob'])
+
+      expect(matcher(['alice', 'bob'])).toEqual({
+        matched: true,
+        value: ['alice', 'bob'],
+        result: [
+          {
+            matched: true,
+            value: ['alice'],
+            result: {
+              matched: true,
+              value: ['alice'],
+              result: [{ matched: true, value: 'alice' }],
+            },
+          },
+          { matched: true, value: 'bob' },
+        ],
+      })
+      expect(matcher(['alice', 'alice', 'bob'])).toEqual({
+        matched: true,
+        value: ['alice', 'alice', 'bob'],
+        result: [
+          {
+            matched: true,
+            value: ['alice', 'alice'],
+            result: {
+              matched: true,
+              value: ['alice', 'alice'],
+              result: [
+                { matched: true, value: 'alice' },
+                { matched: true, value: 'alice' },
+              ],
+            },
+          },
+          { matched: true, value: 'bob' },
+        ],
+      })
+      expect(matcher(['bob'])).toEqual({
+        matched: true,
+        value: ['bob'],
+        result: [
+          { matched: true, value: [] },
+          { matched: true, value: 'bob' },
+        ],
+      })
+    })
   })
 
-  test('some example', () => {
-    const matcher = matchArray([some('alice'), 'bob'])
+  describe('some example', () => {
+    test('just some', () => {
+      const matcher = matchArray([some('alice'), 'bob'])
 
-    expect(matcher(['alice', 'alice', 'bob'])).toEqual({
-      matched: true,
-      value: ['alice', 'alice', 'bob'],
-      results: [
-        {
-          matched: true,
-          value: ['alice', 'alice'],
-          results: [
-            { matched: true, value: 'alice' },
-            { matched: true, value: 'alice' },
-          ],
-        },
-        { matched: true, value: 'bob' },
-      ],
+      expect(matcher(['alice', 'alice', 'bob'])).toEqual({
+        matched: true,
+        value: ['alice', 'alice', 'bob'],
+        result: [
+          {
+            matched: true,
+            value: ['alice', 'alice'],
+            result: [
+              { matched: true, value: 'alice' },
+              { matched: true, value: 'alice' },
+            ],
+          },
+          { matched: true, value: 'bob' },
+        ],
+      })
+
+      expectUnmatched(matcher(['eve', 'bob']))
+      expectUnmatched(matcher(['bob']))
     })
+    test('some of group', () => {
+      const matcher = matchArray([some(group('alice', 'fred')), 'bob'])
 
-    expectUnmatched(matcher(['eve', 'bob']))
-    expectUnmatched(matcher(['bob']))
+      expect(matcher(['alice', 'fred', 'bob'])).toEqual({
+        matched: true,
+        value: ['alice', 'fred', 'bob'],
+        result: [
+          {
+            matched: true,
+            value: ['alice', 'fred'],
+            result: [
+              {
+                matched: true,
+                value: ['alice', 'fred'],
+                result: [
+                  { matched: true, value: 'alice' },
+                  { matched: true, value: 'fred' },
+                ],
+              },
+            ],
+          },
+          { matched: true, value: 'bob' },
+        ],
+      })
+      expect(matcher(['alice', 'fred', 'alice', 'fred', 'bob'])).toEqual({
+        matched: true,
+        value: ['alice', 'fred', 'alice', 'fred', 'bob'],
+        result: [
+          {
+            matched: true,
+            value: ['alice', 'fred', 'alice', 'fred'],
+            result: [
+              {
+                matched: true,
+                value: ['alice', 'fred'],
+                result: [
+                  { matched: true, value: 'alice' },
+                  { matched: true, value: 'fred' },
+                ],
+              },
+              {
+                matched: true,
+                value: ['alice', 'fred'],
+                result: [
+                  { matched: true, value: 'alice' },
+                  { matched: true, value: 'fred' },
+                ],
+              },
+            ],
+          },
+          { matched: true, value: 'bob' },
+        ],
+      })
+    })
   })
 
-  test('group example', () => {
-    const matcher = matchArray([group('alice', 'fred'), 'bob'])
+  describe('group example', () => {
+    test('just group', () => {
+      const matcher = matchArray([group('alice', 'fred'), 'bob'])
 
-    expect(matcher(['alice', 'fred', 'bob'])).toEqual({
-      matched: true,
-      value: ['alice', 'fred', 'bob'],
-      results: [
-        {
-          matched: true,
-          value: ['alice', 'fred'],
-          results: [
-            { matched: true, value: 'alice' },
-            { matched: true, value: 'fred' },
-          ],
-        },
-        { matched: true, value: 'bob' },
-      ],
+      expect(matcher(['alice', 'fred', 'bob'])).toEqual({
+        matched: true,
+        value: ['alice', 'fred', 'bob'],
+        result: [
+          {
+            matched: true,
+            value: ['alice', 'fred'],
+            result: [
+              { matched: true, value: 'alice' },
+              { matched: true, value: 'fred' },
+            ],
+          },
+          { matched: true, value: 'bob' },
+        ],
+      })
+
+      expectUnmatched(matcher(['alice', 'eve', 'bob']))
+      expectUnmatched(matcher(['eve', 'fred', 'bob']))
+      expectUnmatched(matcher(['alice', 'bob']))
+      expectUnmatched(matcher(['fred', 'bob']))
+      expectUnmatched(matcher(['bob']))
     })
+    test('group of maybe', () => {
+      const matcher = matchArray([group(maybe('alice'), 'fred'), 'bob'])
 
-    expectUnmatched(matcher(['alice', 'eve', 'bob']))
-    expectUnmatched(matcher(['eve', 'fred', 'bob']))
-    expectUnmatched(matcher(['alice', 'bob']))
-    expectUnmatched(matcher(['fred', 'bob']))
-    expectUnmatched(matcher(['bob']))
+      expect(matcher(['fred', 'bob'])).toEqual({
+        matched: true,
+        value: ['fred', 'bob'],
+        result: [
+          {
+            matched: true,
+            value: ['fred'],
+            result: [
+              { matched: true, value: [] },
+              { matched: true, value: 'fred' },
+            ],
+          },
+          { matched: true, value: 'bob' },
+        ],
+      })
+      expect(matcher(['alice', 'fred', 'bob'])).toEqual({
+        matched: true,
+        value: ['alice', 'fred', 'bob'],
+        result: [
+          {
+            matched: true,
+            value: ['alice', 'fred'],
+            result: [
+              {
+                matched: true,
+                value: ['alice'],
+                result: { matched: true, value: 'alice' },
+              },
+              { matched: true, value: 'fred' },
+            ],
+          },
+          { matched: true, value: 'bob' },
+        ],
+      })
+    })
+    test('group of some', () => {
+      const matcher = matchArray([group(some('alice'), 'fred'), 'bob'])
+
+      expect(matcher(['alice', 'fred', 'bob'])).toEqual({
+        matched: true,
+        value: ['alice', 'fred', 'bob'],
+        result: [
+          {
+            matched: true,
+            value: ['alice', 'fred'],
+            result: [
+              {
+                matched: true,
+                value: ['alice'],
+                result: [{ matched: true, value: 'alice' }],
+              },
+              { matched: true, value: 'fred' },
+            ],
+          },
+          { matched: true, value: 'bob' },
+        ],
+      })
+      expect(matcher(['alice', 'alice', 'fred', 'bob'])).toEqual({
+        matched: true,
+        value: ['alice', 'alice', 'fred', 'bob'],
+        result: [
+          {
+            matched: true,
+            value: ['alice', 'alice', 'fred'],
+            result: [
+              {
+                matched: true,
+                value: ['alice', 'alice'],
+                result: [
+                  { matched: true, value: 'alice' },
+                  { matched: true, value: 'alice' },
+                ],
+              },
+              { matched: true, value: 'fred' },
+            ],
+          },
+          { matched: true, value: 'bob' },
+        ],
+      })
+
+      expectUnmatched(matcher(['fred', 'bob']))
+    })
   })
 })

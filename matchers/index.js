@@ -55,21 +55,34 @@ export const asMatcher = (matchable) => {
 export const maybe = (expected) =>
   IteratorMatcher((iterator) => {
     const time = iterator.now
-    const { value, done } = iterator.next()
-    if (done) {
-      iterator.jump(time)
-      return {
-        matched: true,
-        value: [],
-      }
-    }
     const matcher = asMatcher(expected)
-    const result = matcher(value)
+    let result
+    if (matcher[iteratorMatcher]) {
+      result = matcher(iterator)
+    } else {
+      const { value, done } = iterator.next()
+      if (done) {
+        iterator.jump(time)
+        return {
+          matched: true,
+          value: [],
+        }
+      }
+      result = matcher(value)
+    }
     if (result.matched) {
-      return {
-        matched: true,
-        value: [result.value],
-        result,
+      if (matcher[iteratorMatcher]) {
+        return {
+          matched: true,
+          value: result.value,
+          result,
+        }
+      } else {
+        return {
+          matched: true,
+          value: [result.value],
+          result,
+        }
       }
     } else {
       iterator.jump(time)
@@ -85,14 +98,23 @@ export const group = (...expected) =>
     const values = []
     const results = []
     for (const element of expected) {
-      const { value, done } = iterator.next()
-      if (done) {
-        return unmatched
-      }
       const matcher = asMatcher(element)
-      const result = matcher(value)
+      let result
+      if (matcher[iteratorMatcher]) {
+        result = matcher(iterator)
+      } else {
+        const { value, done } = iterator.next()
+        if (done) {
+          return unmatched
+        }
+        result = matcher(value)
+      }
       if (result.matched) {
-        values.push(result.value)
+        if (matcher[iteratorMatcher]) {
+          values.push(...result.value)
+        } else {
+          values.push(result.value)
+        }
         results.push(result)
       } else {
         return unmatched
@@ -101,7 +123,7 @@ export const group = (...expected) =>
     return {
       matched: true,
       value: values,
-      results,
+      result: results,
     }
   })
 
@@ -110,34 +132,60 @@ export const some = (expected) =>
     const values = []
     const results = []
     const matcher = asMatcher(expected)
-    while (true) {
-      const time = iterator.now
-      const { value, done } = iterator.next()
-      if (done) {
-        if (results.length === 0) {
-          return unmatched
+    if (matcher[iteratorMatcher]) {
+      while (true) {
+        const time = iterator.now
+        const result = matcher(iterator)
+        if (result.matched) {
+          if (result.value.length === 0) {
+            throw new Error(
+              'some will infinite loop if expected matches but consumes no elements. some of maybe is not possible'
+            )
+          }
+          values.push(...result.value)
+          results.push(result)
         } else {
+          if (results.length === 0) {
+            return unmatched
+          }
           iterator.jump(time)
           return {
             matched: true,
             value: values,
-            results,
+            result: results,
           }
         }
       }
-      const result = matcher(value)
-      if (result.matched) {
-        values.push(result.value)
-        results.push(result)
-      } else {
-        if (results.length === 0) {
-          return unmatched
+    } else {
+      while (true) {
+        const time = iterator.now
+        const { value, done } = iterator.next()
+        if (done) {
+          if (results.length === 0) {
+            return unmatched
+          } else {
+            iterator.jump(time)
+            return {
+              matched: true,
+              value: values,
+              result: results,
+            }
+          }
         }
-        iterator.jump(time)
-        return {
-          matched: true,
-          value: values,
-          results,
+        const result = matcher(value)
+        if (result.matched) {
+          values.push(result.value)
+          results.push(result)
+        } else {
+          if (results.length === 0) {
+            return unmatched
+          }
+          iterator.jump(time)
+          return {
+            matched: true,
+            value: values,
+            result: results,
+          }
         }
       }
     }
@@ -167,7 +215,7 @@ export const matchArray = (expected) =>
       return {
         matched: true,
         value,
-        results: [],
+        result: [],
       }
     }
     const iterator = TimeJumpIterator(value[Symbol.iterator]())
@@ -201,7 +249,7 @@ export const matchArray = (expected) =>
       return {
         matched: true,
         value: readValues,
-        results,
+        result: results,
       }
     } else {
       return unmatched
@@ -215,7 +263,7 @@ export const matchObject = (expected) =>
         return {
           matched: true,
           value,
-          results: {},
+          result: {},
         }
       } else {
         return unmatched
@@ -268,7 +316,7 @@ export const matchObject = (expected) =>
     return {
       matched: true,
       value,
-      results,
+      result: results,
     }
   })
 
@@ -403,7 +451,7 @@ export const allOf = (...matchables) =>
     return {
       matched: true,
       value,
-      results,
+      result: results,
     }
   })
 

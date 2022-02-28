@@ -802,7 +802,7 @@ Creates a `Matcher` from other `Matcher`s.
   matcher([42, 'alice']) ≡ {
     matched: true,
     value: [42, 'alice'],
-    results: [
+    result: [
       { matched: true, value: 42 },
       { matched: true, value: 'alice' }
     ]
@@ -821,7 +821,7 @@ Creates a `Matcher` from other `Matcher`s.
   matcher([42, 'alice']) ≡ {
     matched: true,
     value: [42, 'alice'],
-    results: [
+    result: [
       { matched: true, value: 42 },
       { matched: true, value: 'alice' },
       { matched: true, value: [] }
@@ -830,7 +830,7 @@ Creates a `Matcher` from other `Matcher`s.
   matcher([42, 'alice', true, 69]) ≡ {
     matched: true,
     value: [42, 'alice', true, 69],
-    results: [
+    result: [
       { matched: true, value: 42 },
       { matched: true, value: 'alice' },
       { matched: true, value: [true, 69] }
@@ -849,7 +849,7 @@ Creates a `Matcher` from other `Matcher`s.
   matcher(['alice', 'bob']) ≡ {
     matched: true,
     value: ['alice', 'bob'],
-    results: [
+    result: [
       {
         matched: true,
         value: ['alice'],
@@ -861,7 +861,7 @@ Creates a `Matcher` from other `Matcher`s.
   matcher(['bob']) ≡ {
     matched: true,
     value: ['bob'],
-    results: [
+    result: [
       { matched: true, value: [] },
       { matched: true, value: 'bob' }
     ]
@@ -878,11 +878,11 @@ Creates a `Matcher` from other `Matcher`s.
   matcher(['alice', 'alice', 'bob']) ≡ {
     matched: true,
     value: ['alice', 'alice', 'bob'],
-    results: [
+    result: [
       {
         matched: true,
         value: ['alice', 'alice'],
-        results: [
+        result: [
           { matched: true, value: 'alice' },
           { matched: true, value: 'alice' }
         ]
@@ -902,7 +902,7 @@ Creates a `Matcher` from other `Matcher`s.
   matcher([42, 'alice']) ≡ {
     matched: true,
     value: [42, 'alice'],
-    results: []
+    result: []
   }
 
   matcher(undefined) ≡ { matched: false }
@@ -918,7 +918,7 @@ Creates a `Matcher` from other `Matcher`s.
   function matchObject<T>(expected?: T): Matcher<T>
   ```
 
-  Matches `expected` enumerable object properties completely or partially with [`rest`](#rest) matcher. Primatives in `expected` are wrapped with their corresponding `Matcher` builder. Rest of properties can be founds in `results` object. Matches any defined object if `expected` is not provided.
+  Matches `expected` enumerable object properties completely or partially with [`rest`](#rest) matcher. Primatives in `expected` are wrapped with their corresponding `Matcher` builder. Rest of properties can be founds in `result` object. Matches any defined object if `expected` is not provided.
   <details>
   <summary>Example</summary>
 
@@ -929,7 +929,7 @@ Creates a `Matcher` from other `Matcher`s.
   matcher({ x: 42, y: 'alice' }) ≡ {
     matched: true,
     value: { x: 42, y: 'alice' },
-    results: {
+    result: {
       x: { matched: true, value: 42 },
       y: { matched: true, value: 'alice' }
     }
@@ -937,7 +937,7 @@ Creates a `Matcher` from other `Matcher`s.
   matcher({ y: 'alice', x: 42 }) ≡ {
     matched: true,
     value: { y: 'alice', x: 42 },
-    results: {
+    result: {
       x: { matched: true, value: 42 },
       y: { matched: true, value: 'alice' }
     }
@@ -955,7 +955,7 @@ Creates a `Matcher` from other `Matcher`s.
   matcher({ x: 42, y: 'alice' }) ≡ {
     matched: true,
     value: { x: 42, y: 'alice' },
-    results: {
+    result: {
       x: { matched: true, value: 42 },
       y: { matched: true, value: 'alice' },
       rest: { matched: true, value: {} }
@@ -964,7 +964,7 @@ Creates a `Matcher` from other `Matcher`s.
   matcher({ x: 42, y: 'alice', z: true, aa: 69 }) ≡ {
     matched: true,
     value: { x: 42, y: 'alice', z: true, aa: 69 },
-    results: {
+    result: {
       x: { matched: true, value: 42 },
       y: { matched: true, value: 'alice' },
       rest: { matched: true, value: { z: true, aa: 69 } }
@@ -982,7 +982,7 @@ Creates a `Matcher` from other `Matcher`s.
   matcher({ x: 42, y: 'alice', z: true }) ≡ {
     matched: true,
     value: { x: 42, y: 'alice', z: true },
-    results: {
+    result: {
       x: { matched: true, value: 42 },
       y: { matched: true, value: 'alice' },
       customRestKey: { matched: true, value: {z: true} }
@@ -997,7 +997,7 @@ Creates a `Matcher` from other `Matcher`s.
   matcher({ x: 42, y: 'alice' }) ≡ {
     matched: true,
     value: { x: 42, y: 'alice' },
-    results: {}
+    result: {}
   }
 
   matcher(undefined) ≡ { matched: false }
@@ -1008,27 +1008,29 @@ Creates a `Matcher` from other `Matcher`s.
 
 - #### `group`
 
-  <!-- prettier-ignore -->
+    <!-- prettier-ignore -->
+
   ```ts
   function group<T>(...expected: T[]): Matcher<T[]>
   ```
 
-  An [`IteratorMatcher`](#core-concept) that is only valid as element of [`matchArray`](#matcharray). This consumes all a sequence of element matching `expected` in the array. Similar to regular expression group.
-  <details>
-  <summary>Example</summary>
+  An [`IteratorMatcher`](#core-concept) that is only valid as element of [`matchArray`](#matcharray). This consumes all a sequence of element matching `expected` array. Similar to regular expression group. `group` composes with `maybe` and `some`.
+    <details>
+    <summary>Example</summary>
 
-  <!-- prettier-ignore -->
+    <!-- prettier-ignore -->
+
   ```js
   const matcher = matchArray([group('alice', 'fred'), 'bob'])
 
   matcher(['alice', 'fred', 'bob']) ≡ {
     matched: true,
     value: ['alice', 'fred', 'bob'],
-    results: [
+    result: [
       {
         matched: true,
         value: ['alice', 'fred'],
-        results: [
+        result: [
           { matched: true, value: 'alice' },
           { matched: true, value: 'fred' }
         ]
@@ -1044,7 +1046,96 @@ Creates a `Matcher` from other `Matcher`s.
   matcher(['bob']) ≡ { matched: false }
   ```
 
-  </details>
+  <!-- prettier-ignore -->
+  ```js
+  const matcher = matchArray([group(maybe('alice'), 'fred'), 'bob'])
+
+  matcher(['fred', 'bob']) ≡ {
+    matched: true,
+    value: ['fred', 'bob'],
+    result: [
+      {
+        matched: true,
+        value: ['fred'],
+        result: [
+          { matched: true, value: [] },
+          { matched: true, value: 'fred' }
+        ]
+      },
+      { matched: true, value: 'bob' }
+    ]
+  }
+  matcher(['alice', 'fred', 'bob']) ≡ {
+    matched: true,
+    value: ['alice', 'fred', 'bob'],
+    result: [
+      {
+        matched: true,
+        value: ['alice', 'fred'],
+        result: [
+          {
+            matched: true,
+            value: ['alice'],
+            result: { matched: true, value: 'alice' }
+          },
+          { matched: true, value: 'fred' }
+        ]
+      },
+      { matched: true, value: 'bob' }
+    ]
+  }
+  ```
+
+  <!-- prettier-ignore -->
+  ```js
+  const matcher = matchArray([group(some('alice'), 'fred'), 'bob'])
+
+  matcher(['alice', 'fred', 'bob']) ≡ {
+    matched: true,
+    value: ['alice', 'fred', 'bob'],
+    result: [
+      {
+        matched: true,
+        value: ['alice', 'fred'],
+        result: [
+          {
+            matched: true,
+            value: ['alice'],
+            result: [{ matched: true, value: 'alice' }]
+          },
+          { matched: true, value: 'fred' }
+        ]
+      },
+      { matched: true, value: 'bob' }
+    ]
+  }
+  matcher(['alice', 'alice', 'fred', 'bob']) ≡ {
+    matched: true,
+    value: ['alice', 'alice', 'fred', 'bob'],
+    result: [
+      {
+        matched: true,
+        value: ['alice', 'alice', 'fred'],
+        result: [
+          {
+            matched: true,
+            value: ['alice', 'alice'],
+            result: [
+              { matched: true, value: 'alice' },
+              { matched: true, value: 'alice' }
+            ]
+          },
+          { matched: true, value: 'fred' }
+        ]
+      },
+      { matched: true, value: 'bob' }
+    ]
+  }
+
+  matcher(['fred', 'bob']) ≡ { matched: false }
+  ```
+
+    </details>
 
 - #### `maybe`
 
@@ -1053,7 +1144,7 @@ Creates a `Matcher` from other `Matcher`s.
   function maybe<T>(expected: T): Matcher<T | undefined>
   ```
 
-  An [`IteratorMatcher`](#core-concept) that is only valid as element of [`matchArray`](#matcharray). This consumes an element in the array if it matches `expected`, otherwise does nothing. The unmatched element can be consumed by the next matcher. Similar to regular expression `?` operator.
+  An [`IteratorMatcher`](#core-concept) that is only valid as element of [`matchArray`](#matcharray). This consumes an element in the array if it matches `expected`, otherwise does nothing. The unmatched element can be consumed by the next matcher. Similar to regular expression `?` operator. `maybe` composes with `group` and `some`.
   <details>
   <summary>Example</summary>
 
@@ -1064,11 +1155,11 @@ Creates a `Matcher` from other `Matcher`s.
   matcher(['alice', 'bob']) ≡ {
     matched: true,
     value: ['alice', 'bob'],
-    results: [
+    result: [
       {
         matched: true,
         value: ['alice'],
-        result: { matched: true, value: 'alice' },
+        result: { matched: true, value: 'alice' }
       },
       { matched: true, value: 'bob' }
     ]
@@ -1076,7 +1167,7 @@ Creates a `Matcher` from other `Matcher`s.
   matcher(['bob']) ≡ {
     matched: true,
     value: ['bob'],
-    results: [
+    result: [
       { matched: true, value: [] },
       { matched: true, value: 'bob' }
     ]
@@ -1084,6 +1175,90 @@ Creates a `Matcher` from other `Matcher`s.
 
   matcher(['eve', 'bob']) ≡ { matched: false }
   matcher(['eve']) ≡ { matched: false }
+  ```
+
+  <!-- prettier-ignore -->
+  ```js
+  const matcher = matchArray([maybe(group('alice', 'fred')), 'bob'])
+
+  matcher(['alice', 'fred', 'bob']) ≡ {
+    matched: true,
+    value: ['alice', 'fred', 'bob'],
+    result: [
+      {
+        matched: true,
+        value: ['alice', 'fred'],
+        result: {
+          matched: true,
+          value: ['alice', 'fred'],
+          result: [
+            { matched: true, value: 'alice' },
+            { matched: true, value: 'fred' }
+          ]
+        }
+      },
+      { matched: true, value: 'bob' },
+    ]
+  }
+  matcher(['bob']) ≡ {
+    matched: true,
+    value: ['bob'],
+    result: [
+      { matched: true, value: [] },
+      { matched: true, value: 'bob' }
+    ]
+  }
+  ```
+
+  <!-- prettier-ignore -->
+  ```js
+  const matcher = matchArray([maybe(some('alice')), 'bob'])
+
+  matcher(['alice', 'bob']) ≡ {
+    matched: true,
+    value: ['alice', 'bob'],
+    result: [
+      {
+        matched: true,
+        value: ['alice'],
+        result: {
+          matched: true,
+          value: ['alice'],
+          result: [
+            { matched: true, value: 'alice' }
+          ]
+        }
+      },
+      { matched: true, value: 'bob' }
+    ]
+  }
+  matcher(['alice', 'alice', 'bob']) ≡ {
+    matched: true,
+    value: ['alice', 'bob'],
+    result: [
+      {
+        matched: true,
+        value: ['alice', 'alice'],
+        result: {
+          matched: true,
+          value: ['alice', 'alice'],
+          result: [
+            { matched: true, value: 'alice' },
+            { matched: true, value: 'alice' }
+          ]
+        }
+      },
+      { matched: true, value: 'bob' }
+    ]
+  }
+  matcher(['bob']) ≡ {
+    matched: true,
+    value: ['bob'],
+    result: [
+      { matched: true, value: [] },
+      { matched: true, value: 'bob' }
+    ]
+  }
   ```
 
   </details>
@@ -1135,9 +1310,9 @@ Creates a `Matcher` from other `Matcher`s.
     (
       { headers: [{ value: cookieValue }] },
       {
-        results: {
+        result: {
           headers: {
-            results: [, { value: restOfHeaders }],
+            result: [, { value: restOfHeaders }],
           },
           rest: { value: restOfResponse },
         },
@@ -1172,7 +1347,7 @@ Creates a `Matcher` from other `Matcher`s.
   matcher([42, 'alice']) ≡ {
     matched: true,
     value: [42, 'alice'],
-    results: [
+    result: [
       { matched: true, value: 42 },
       { matched: true, value: 'alice' },
       { matched: true, value: [] }
@@ -1181,7 +1356,7 @@ Creates a `Matcher` from other `Matcher`s.
   matcher([42, 'alice', true, 69]) ≡ {
     matched: true,
     value: [42, 'alice', true, 69],
-    results: [
+    result: [
       { matched: true, value: 42 },
       { matched: true, value: 'alice' },
       { matched: true, value: [true, 69] }
@@ -1200,7 +1375,7 @@ Creates a `Matcher` from other `Matcher`s.
   matcher({ x: 42, y: 'alice' }) ≡ {
     matched: true,
     value: { x: 42, y: 'alice' },
-    results: {
+    result: {
       x: { matched: true, value: 42 },
       y: { matched: true, value: 'alice' },
       rest: { matched: true, value: {} }
@@ -1209,7 +1384,7 @@ Creates a `Matcher` from other `Matcher`s.
   matcher({ x: 42, y: 'alice', z: true, aa: 69 }) ≡ {
     matched: true,
     value: { x: 42, y: 'alice', z: true, aa: 69 },
-    results: {
+    result: {
       x: { matched: true, value: 42 },
       y: { matched: true, value: 'alice' },
       rest: { matched: true, value: { z: true, aa: 69 } }
@@ -1227,7 +1402,7 @@ Creates a `Matcher` from other `Matcher`s.
   matcher({ x: 42, y: 'alice', z: true }) ≡ {
     matched: true,
     value: { x: 42, y: 'alice', z: true },
-    results: {
+    result: {
       x: { matched: true, value: 42 },
       y: { matched: true, value: 'alice' },
       customRestKey: { matched: true, value: {z: true} }
@@ -1244,7 +1419,7 @@ Creates a `Matcher` from other `Matcher`s.
   function some<T>(expected: T): Matcher<T[]>
   ```
 
-  An [`IteratorMatcher`](#core-concept) that is only valid as element of [`matchArray`](#matcharray). This consumes all consecutive element matching `expected` in the array until it reaches the end or encounters an unmatched element. The unmatched element can be consumed by the next matcher. At least one element must match. Similar to regular expression `+` operator.
+  An [`IteratorMatcher`](#core-concept) that is only valid as element of [`matchArray`](#matcharray). This consumes all consecutive element matching `expected` in the array until it reaches the end or encounters an unmatched element. The unmatched element can be consumed by the next matcher. At least one element must match. Similar to regular expression `+` operator. `some` composes with `group` **but not `maybe`**. Attempting to compose with `maybe` will throw an error as it would otherwise lead to an infinite loop.
   <details>
   <summary>Example</summary>
 
@@ -1255,11 +1430,11 @@ Creates a `Matcher` from other `Matcher`s.
   matcher(['alice', 'alice', 'bob']) ≡ {
     matched: true,
     value: ['alice', 'alice', 'bob'],
-    results: [
+    result: [
       {
         matched: true,
         value: ['alice', 'alice'],
-        results: [
+        result: [
           { matched: true, value: 'alice' },
           { matched: true, value: 'alice' }
         ]
@@ -1270,6 +1445,62 @@ Creates a `Matcher` from other `Matcher`s.
 
   matcher(['eve', 'bob']) ≡ { matched: false }
   matcher(['bob']) ≡ { matched: false }
+  ```
+
+  <!-- prettier-ignore -->
+  ```js
+  const matcher = matchArray([some(group('alice', 'fred')), 'bob'])
+
+  matcher(['alice', 'fred', 'bob']) ≡ {
+    matched: true,
+    value: ['alice', 'fred', 'bob'],
+    result: [
+      {
+        matched: true,
+        value: ['alice', 'fred'],
+        result: [
+          {
+            matched: true,
+            value: ['alice', 'fred'],
+            result: [
+              { matched: true, value: 'alice' },
+              { matched: true, value: 'fred' }
+            ]
+          }
+        ]
+      },
+      { matched: true, value: 'bob' }
+    ]
+  }
+  matcher(['alice', 'fred', 'alice', 'fred', 'bob']) ≡ {
+    matched: true,
+    value: ['alice', 'fred', 'alice', 'fred', 'bob'],
+    result: [
+      {
+        matched: true,
+        value: ['alice', 'fred', 'alice', 'fred'],
+        result: [
+          {
+            matched: true,
+            value: ['alice', 'fred'],
+            result: [
+              { matched: true, value: 'alice' },
+              { matched: true, value: 'fred' }
+            ]
+          },
+          {
+            matched: true,
+            value: ['alice', 'fred'],
+            result: [
+              { matched: true, value: 'alice' },
+              { matched: true, value: 'fred' }
+            ]
+          }
+        ]
+      },
+      { matched: true, value: 'bob' }
+    ]
+  }
   ```
 
   </details>
@@ -1295,7 +1526,7 @@ Creates a `Matcher` from other `Matcher`s.
   matcher(2) ≡ {
     matched: true,
     value: 2,
-    results: [
+    result: [
       { matched: true, value: 2 },
       { matched: true, value: 2 }
     ]
@@ -1310,8 +1541,8 @@ Creates a `Matcher` from other `Matcher`s.
   ```js
   const matcher = allOf()
 
-  matcher(undefined) ≡ { matched: true, value: undefined, results: [] }
-  matcher({ key: 'value' }) ≡ { matched: true, value: { key: 'value' }, results: [] }
+  matcher(undefined) ≡ { matched: true, value: undefined, result: [] }
+  matcher({ key: 'value' }) ≡ { matched: true, value: { key: 'value' }, result: [] }
   ```
 
   </details>
@@ -1374,7 +1605,7 @@ Creates a `Matcher` from other `Matcher`s.
   matcher({ role: 'teacher', surname: 'Wong' }) ≡ {
     matched: true,
     value: 'Good morning Wong',
-    results: {
+    result: {
       role: { matched: true, value: 'teacher' },
       surname: { matched: true, value: 'Wong' }
     }
@@ -1394,7 +1625,7 @@ Creates a `Matcher` from other `Matcher`s.
   matcher({ role: 'teacher', surname: 'Wong' }) ≡ {
     matched: true,
     value: 'Good morning Wong',
-    results: {
+    result: {
       role: { matched: true, value: 'teacher' },
       surname: { matched: true, value: 'Wong' }
     }

@@ -36,7 +36,7 @@ describe('matchObject', () => {
     const result = matcher({ x: 'hello 42' })
     expectMatched(result)
     const {
-      results: {
+      result: {
         x: {
           matchedRegExp: {
             groups: { id },
@@ -62,7 +62,7 @@ describe('matchObject', () => {
       y: 2,
       z: 3,
     })
-    expect(result.results.rest.value).toEqual({
+    expect(result.result.rest.value).toEqual({
       y: 2,
       z: 3,
     })
@@ -77,6 +77,6 @@ describe('matchObject', () => {
       y: 2,
       z: 3,
     })
-    expect(result.results.rest.value).toEqual({})
+    expect(result.result.rest.value).toEqual({})
   })
 })

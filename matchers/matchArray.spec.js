@@ -60,7 +60,7 @@ describe('matchArray', () => {
     const result = matcher(['hello 42'])
     expectMatched(result)
     const {
-      results: [
+      result: [
         {
           matchedRegExp: {
             groups: { id },
@@ -76,7 +76,7 @@ describe('matchArray', () => {
     const result = matcher([1, 2, 3])
     expectMatched(result)
     expect(result.value).toEqual([1, 2, 3])
-    expect(result.results[1].value).toEqual([2, 3])
+    expect(result.result[1].value).toEqual([2, 3])
   })
 
   test('rest matches remaining element even if already complete match', () => {
@@ -84,7 +84,7 @@ describe('matchArray', () => {
     const result = matcher([1, 2, 3])
     expectMatched(result)
     expect(result.value).toEqual([1, 2, 3])
-    expect(result.results[3].value).toEqual([])
+    expect(result.result[3].value).toEqual([])
   })
 
   test('empty expected matches any iterator', () => {
@@ -183,7 +183,7 @@ describe('matchArray', () => {
     const matcher = matchArray([maybe(1)])
     const result = matcher([1])
     expectMatched(result)
-    expect(result.results[0]).toEqual({
+    expect(result.result[0]).toEqual({
       matched: true,
       value: [1],
       result: {
@@ -197,7 +197,7 @@ describe('matchArray', () => {
     const matcher = matchArray([maybe(1)])
     const result = matcher([])
     expectMatched(result)
-    expect(result.results[0]).toEqual({
+    expect(result.result[0]).toEqual({
       matched: true,
       value: [],
     })
@@ -263,5 +263,61 @@ describe('matchArray', () => {
     const matcher = matchArray([1, some(2)])
     expectMatched(matcher([1, 2]))
     expectMatched(matcher([1, 2, 2]))
+  })
+
+  test('maybe of group', () => {
+    const matcher = matchArray([maybe(group(1, 2)), 3])
+
+    expectMatched(matcher([1, 2, 3]))
+    expectMatched(matcher([3]))
+    expectUnmatched(matcher([]))
+    expectUnmatched(matcher([1, 2]))
+  })
+
+  test('maybe of some', () => {
+    const matcher = matchArray([maybe(some(1)), 3])
+
+    expectMatched(matcher([3]))
+    expectMatched(matcher([1, 3]))
+    expectMatched(matcher([1, 1, 3]))
+    expectUnmatched(matcher([]))
+    expectUnmatched(matcher([1]))
+  })
+
+  test('some of group', () => {
+    const matcher = matchArray([some(group(1, 2)), 3])
+
+    expectMatched(matcher([1, 2, 3]))
+    expectMatched(matcher([1, 2, 1, 2, 3]))
+    expectUnmatched(matcher([]))
+    expectUnmatched(matcher([1, 2]))
+    expectUnmatched(matcher([3]))
+  })
+
+  test('some of maybe should throw', () => {
+    const matcher = matchArray([some(maybe(1))])
+
+    expect(() => matcher([])).toThrow('infinite loop')
+  })
+
+  test('group of maybe', () => {
+    const matcher = matchArray([group(maybe(1), 2), 3])
+
+    expectMatched(matcher([2, 3]))
+    expectMatched(matcher([1, 2, 3]))
+    expectUnmatched(matcher([]))
+    expectUnmatched(matcher([1, 2]))
+    expectUnmatched(matcher([3]))
+  })
+
+  test('group of some', () => {
+    const matcher = matchArray([group(some(1), 2), 3])
+
+    expectMatched(matcher([1, 2, 3]))
+    expectMatched(matcher([1, 1, 2, 3]))
+    expectUnmatched(matcher([]))
+    expectUnmatched(matcher([2, 3]))
+    expectUnmatched(matcher([1, 2]))
+    expectUnmatched(matcher([3]))
   })
 })
