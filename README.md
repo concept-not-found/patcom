@@ -931,6 +931,44 @@ Creates a `Matcher` from other `Matcher`s.
 
   </details>
 
+- #### `maybe`
+
+  <!-- prettier-ignore -->
+  ```ts
+  function maybe<T>(expected: T): Matcher<T | undefined>
+  ```
+
+  A special `Matcher` that is only valid as element of [`matchArray`](#matcharray). This consumes an element in the array if it matches, otherwise does nothing. The unmatched element can be consumed by the next matcher.
+  <details>
+  <summary>Example</summary>
+
+  <!-- prettier-ignore -->
+  ```js
+  const matcher = matchArray([maybe('alice'), 'bob'])
+
+  matcher(['alice', 'bob']) ≡ {
+    matched: true,
+    value: ['alice', 'bob'],
+    results: [
+      { matched: true, value: 'alice' },
+      { matched: true, value: 'bob' }
+    ]
+  }
+  matcher(['bob']) ≡ {
+    matched: true,
+    value: ['bob'],
+    results: [
+      { matched: true, value: undefined },
+      { matched: true, value: 'bob' }
+    ]
+  }
+
+  matcher(['eve', 'bob']) ≡ { matched: false }
+  matcher(['eve']) ≡ { matched: false }
+  ```
+
+  </details>
+
 - #### `not`
 
   <!-- prettier-ignore -->
@@ -958,7 +996,7 @@ Creates a `Matcher` from other `Matcher`s.
 
   <!-- prettier-ignore -->
   ```ts
-  const res: Matcher<any>
+  const rest: Matcher<any>
   ```
 
   A special `Matcher` that is only valid as element of [`matchArray`](#matcharray) or property of [`matchObject`](#matchobject). This consumes the remaining elements/properties to prefix matching of arrays and partial matching of objects.
