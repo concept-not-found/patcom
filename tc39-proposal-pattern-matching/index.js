@@ -1,4 +1,5 @@
 import { Matcher, asMatcher, unmatched } from '../index.js'
+import ResettableIterator from '../resettable-iterator.js'
 
 export function cachedProperties(source) {
   const cache = {}
@@ -12,45 +13,20 @@ export function cachedProperties(source) {
   })
 }
 
-export function cachedGenerator(source) {
-  const previous = []
-  let sourceIndex = 0
-  let sourceDone = false
-  return function* reset() {
-    let index = 0
-    while (true) {
-      if (index === sourceIndex) {
-        if (sourceDone) {
-          return
-        }
-        const { value, done } = source.next()
-        if (done) {
-          sourceDone = true
-          return
-        }
-        previous.push(value)
-        sourceIndex += 1
-      }
-      yield previous[index++]
-    }
-  }
-}
-
 export const cachingOneOf = (...matchables) =>
   Matcher((value) => {
-    let resetValue
-    if (
+    const iteratorValue =
       typeof value !== 'string' &&
       !Array.isArray(value) &&
       value[Symbol.iterator]
-    ) {
-      resetValue = cachedGenerator(value)
+    if (iteratorValue) {
+      value = ResettableIterator(value)
     } else if (typeof value === 'object') {
       value = cachedProperties(value)
     }
     for (const matchable of matchables) {
-      if (resetValue) {
-        value = resetValue()
+      if (iteratorValue) {
+        value.reset()
       }
       const matcher = asMatcher(matchable)
       const result = matcher(value)
