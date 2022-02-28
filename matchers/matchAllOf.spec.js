@@ -31,7 +31,7 @@ describe('allOf', () => {
     const result = matcher('hello 42')
     expectMatched(result)
     const {
-      results: [
+      result: [
         {
           matchedRegExp: {
             groups: { greeting },
