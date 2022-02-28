@@ -1,6 +1,6 @@
 import { expectMatched } from './test-utils.js'
 
-import { matchArray, rest } from './index.js'
+import { matchArray, maybe, rest } from './index.js'
 
 describe('matchArray', () => {
   test('empty expected matches any array', () => {
@@ -172,5 +172,43 @@ describe('matchArray', () => {
     const iterable = numbers()
     matcher(iterable)
     expect([...iterable]).toEqual([5, 6])
+  })
+
+  test('matched maybe of single element', () => {
+    const matcher = matchArray([maybe(1)])
+    expectMatched(matcher([1]))
+    expectMatched(matcher([]))
+  })
+
+  test('matched maybe is present in result', () => {
+    const matcher = matchArray([maybe(1)])
+    const result = matcher([1])
+    expectMatched(result)
+    expect(result.results[0]).toEqual({
+      matched: true,
+      value: 1,
+    })
+  })
+
+  test('matched maybe is present in result as undefined value when element is not present', () => {
+    const matcher = matchArray([maybe(1)])
+    const result = matcher([])
+    expectMatched(result)
+    expect(result.results[0]).toEqual({
+      matched: true,
+      value: undefined,
+    })
+  })
+
+  test('matched maybe before element', () => {
+    const matcher = matchArray([maybe(1), 2])
+    expectMatched(matcher([1, 2]))
+    expectMatched(matcher([2]))
+  })
+
+  test('matched maybe after element', () => {
+    const matcher = matchArray([1, maybe(2)])
+    expectMatched(matcher([1, 2]))
+    expectMatched(matcher([1]))
   })
 })

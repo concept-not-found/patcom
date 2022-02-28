@@ -1,3 +1,4 @@
+import ResettableIterator from '../resettable-iterator.js'
 import { mapMatcher, mapResultMatcher } from '../mappers.js'
 
 export const matcher = Symbol('matcher')
@@ -43,6 +44,24 @@ export const asMatcher = (matchable) => {
   return matchable
 }
 
+const maybeMarker = Symbol('maybe')
+export const maybe = (expected) => {
+  const matcher = asMatcher(expected)
+  const maybeMatcher = Matcher(() => {
+    throw new Error(
+      'maybe is a marker matcher and does not actually match anything. it is intended to used within matchArray'
+    )
+  })
+  maybeMatcher[maybeMarker] = matcher
+  return maybeMatcher
+}
+
+export const rest = Matcher(() => {
+  throw new Error(
+    'rest is a marker matcher and does not actually match anything. it is intended to used within matchArray and matchObject'
+  )
+})
+
 export const matchArray = (expected) =>
   Matcher((value) => {
     if (value === undefined || !value[Symbol.iterator]) {
@@ -58,7 +77,7 @@ export const matchArray = (expected) =>
         results: [],
       }
     }
-    const iterator = value[Symbol.iterator]()
+    const iterator = ResettableIterator(value[Symbol.iterator]())
     const readValues = []
     const results = []
     for (const element of expected) {
@@ -75,17 +94,41 @@ export const matchArray = (expected) =>
           rest: restValues,
         }
       }
+      iterator.mark()
       const { value: iteratorValue, done } = iterator.next()
-      if (done) {
+      if (matcher[maybeMarker]) {
+        if (done) {
+          results.push({
+            matched: true,
+            value: undefined,
+          })
+          iterator.reset()
+        } else {
+          const result = matcher[maybeMarker](iteratorValue)
+          if (result.matched) {
+            results.push(result)
+            readValues.push(iteratorValue)
+          } else {
+            results.push({
+              matched: true,
+              value: undefined,
+            })
+            iterator.reset()
+          }
+        }
+        continue
+      } else {
+        if (done) {
+          return unmatched
+        }
+        const result = matcher(iteratorValue)
+        if (result.matched) {
+          results.push(result)
+          readValues.push(iteratorValue)
+          continue
+        }
         return unmatched
       }
-      readValues.push(iteratorValue)
-      const result = matcher(iteratorValue)
-      results.push(result)
-      if (result.matched) {
-        continue
-      }
-      return unmatched
     }
     if (iterator.next().done) {
       return {
@@ -212,12 +255,6 @@ export const matchString = (expected) =>
 export const any = matchPredicate(() => true)
 
 export const defined = matchPredicate((value) => value !== undefined)
-
-export const rest = Matcher(() => {
-  throw new Error(
-    'rest is a marker matcher and does actually match anything. it is intended to used within matchArray and matchObject'
-  )
-})
 
 export const between = (lower, upper) =>
   matchPredicate(
