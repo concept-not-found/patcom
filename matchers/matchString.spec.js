@@ -1,4 +1,4 @@
-import { expectMatched } from './test-utils.js'
+import { expectMatched, expectUnmatched } from './test-utils.js'
 
 import { matchString } from './index.js'
 
@@ -28,6 +28,6 @@ describe('matchString', () => {
   test('unmatched to different string', () => {
     const matcher = matchString('Ailce')
     const result = matcher('Bob')
-    expect(result.matched).toBe(false)
+    expectUnmatched(result)
   })
 })

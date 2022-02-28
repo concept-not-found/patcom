@@ -938,7 +938,7 @@ Creates a `Matcher` from other `Matcher`s.
   function maybe<T>(expected: T): Matcher<T | undefined>
   ```
 
-  A special `Matcher` that is only valid as element of [`matchArray`](#matcharray). This consumes an element in the array if it matches, otherwise does nothing. The unmatched element can be consumed by the next matcher.
+  A special `Matcher` that is only valid as element of [`matchArray`](#matcharray). This consumes an element in the array if it matches `expected`, otherwise does nothing. The unmatched element can be consumed by the next matcher. Similar to regular expression `?` operator.
   <details>
   <summary>Example</summary>
 
@@ -1096,6 +1096,43 @@ Creates a `Matcher` from other `Matcher`s.
 
   </details>
 
+- #### `some`
+
+  <!-- prettier-ignore -->
+  ```ts
+  function some<T>(expected: T): Matcher<T[]>
+  ```
+
+  A special `Matcher` that is only valid as element of [`matchArray`](#matcharray). This consumes all consecutive element matching `expected` in the array until it reaches the end or encounters an unmatched element. The unmatched element can be consumed by the next matcher. At least one element must match. Similar to regular expression `+` operator.
+  <details>
+  <summary>Example</summary>
+
+  <!-- prettier-ignore -->
+  ```js
+  const matcher = matchArray([some('alice'), 'bob'])
+
+  matcher(['alice', 'alice', 'bob']) ≡ {
+    matched: true,
+    value: ['alice', 'alice', 'bob'],
+    results: [
+      {
+        matched: true,
+        value: ['alice', 'alice'],
+        results: [
+          { matched: true, value: 'alice' },
+          { matched: true, value: 'alice' }
+        ]
+      },
+      { matched: true, value: 'bob' }
+    ]
+  }
+
+  matcher(['eve', 'bob']) ≡ { matched: false }
+  matcher(['bob']) ≡ { matched: false }
+  ```
+
+  </details>
+
 - #### `allOf`
 
   <!-- prettier-ignore -->
@@ -1145,7 +1182,7 @@ Creates a `Matcher` from other `Matcher`s.
   function oneOf<T>(expected: ...T): Matcher<T>
   ```
 
-  Matches first `expected` matcher that matches. Primatives in `expected` are wrapped with their corresponding `Matcher` builder. Always unmatched when empty `expected`. Similar to [`match`](#match).
+  Matches first `expected` matcher that matches. Primatives in `expected` are wrapped with their corresponding `Matcher` builder. Always unmatched when empty `expected`. Similar to [`match`](#match). Similar to the regular expression `|` operator.
   <details>
   <summary>Example</summary>
 

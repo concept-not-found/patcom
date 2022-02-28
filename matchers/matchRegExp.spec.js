@@ -1,4 +1,4 @@
-import { expectMatched } from './test-utils.js'
+import { expectMatched, expectUnmatched } from './test-utils.js'
 
 import { matchRegExp } from './index.js'
 
@@ -36,6 +36,6 @@ describe('matchRegExp', () => {
   test('unmatched to unmatched RegExp', () => {
     const matcher = matchRegExp(/^Alice$/)
     const result = matcher('Bob')
-    expect(result.matched).toBe(false)
+    expectUnmatched(result)
   })
 })

@@ -1,4 +1,4 @@
-import { expectMatched } from './test-utils.js'
+import { expectMatched, expectUnmatched } from './test-utils.js'
 
 import { matchObject, defined, rest } from './index.js'
 
@@ -28,7 +28,7 @@ describe('matchObject', () => {
   test('empty expected does not match undefined', () => {
     const matcher = matchObject()
     const result = matcher()
-    expect(result.matched).toBe(false)
+    expectUnmatched(result)
   })
 
   test('access nested matched result fields', () => {
@@ -57,7 +57,7 @@ describe('matchObject', () => {
   test('unmatched empty object with expected field', () => {
     const matcher = matchObject({ x: defined })
     const result = matcher({})
-    expect(result.matched).toBe(false)
+    expectUnmatched(result)
   })
 
   test('rest matcher collect remaining fields', () => {

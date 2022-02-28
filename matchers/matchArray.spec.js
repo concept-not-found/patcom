@@ -1,6 +1,6 @@
-import { expectMatched } from './test-utils.js'
+import { expectMatched, expectUnmatched } from './test-utils.js'
 
-import { matchArray, maybe, rest } from './index.js'
+import { matchArray, maybe, some, rest } from './index.js'
 
 describe('matchArray', () => {
   test('empty expected matches any array', () => {
@@ -13,7 +13,7 @@ describe('matchArray', () => {
   test('empty expected does not match undefined', () => {
     const matcher = matchArray()
     const result = matcher()
-    expect(result.matched).toBe(false)
+    expectUnmatched(result)
   })
 
   test('matched identical literal array', () => {
@@ -40,13 +40,13 @@ describe('matchArray', () => {
   test('unmatched when expected more elements', () => {
     const matcher = matchArray([1, 2, 3])
     const result = matcher([1, 2])
-    expect(result.matched).toBe(false)
+    expectUnmatched(result)
   })
 
   test('unmatched when more elements than expected', () => {
     const matcher = matchArray([1, 2, 3])
     const result = matcher([1, 2, 3, 4])
-    expect(result.matched).toBe(false)
+    expectUnmatched(result)
   })
 
   test('access nested matched result fields', () => {
@@ -143,7 +143,7 @@ describe('matchArray', () => {
       yield 2
     }
     const result = matcher(numbers())
-    expect(result.matched).toBe(false)
+    expectUnmatched(result)
   })
 
   test('unmatched iterator when more elements than expected', () => {
@@ -156,7 +156,7 @@ describe('matchArray', () => {
       yield 5
     }
     const result = matcher(numbers())
-    expect(result.matched).toBe(false)
+    expectUnmatched(result)
   })
 
   test('only reads iterator one passed number of expected elements', () => {
@@ -200,15 +200,44 @@ describe('matchArray', () => {
     })
   })
 
-  test('matched maybe before element', () => {
+  test('matched maybe before other elements', () => {
     const matcher = matchArray([maybe(1), 2])
     expectMatched(matcher([1, 2]))
     expectMatched(matcher([2]))
   })
 
-  test('matched maybe after element', () => {
+  test('matched maybe after other elements', () => {
     const matcher = matchArray([1, maybe(2)])
     expectMatched(matcher([1, 2]))
     expectMatched(matcher([1]))
+  })
+
+  test('matched some of matching elements', () => {
+    const matcher = matchArray([some(1)])
+    expectMatched(matcher([1]))
+    expectMatched(matcher([1, 1]))
+  })
+
+  test('unmatched when no elements match some', () => {
+    const matcher = matchArray([some(1)])
+    expectUnmatched(matcher([]))
+    expectUnmatched(matcher([2]))
+  })
+
+  test('unmatched extra elements after some', () => {
+    const matcher = matchArray([some(1)])
+    expectUnmatched(matcher([1, 2]))
+  })
+
+  test('matched some of matching elements before other elements', () => {
+    const matcher = matchArray([some(1), 2])
+    expectMatched(matcher([1, 2]))
+    expectMatched(matcher([1, 1, 2]))
+  })
+
+  test('matched some of matching elements after other elements', () => {
+    const matcher = matchArray([1, some(2)])
+    expectMatched(matcher([1, 2]))
+    expectMatched(matcher([1, 2, 2]))
   })
 })
