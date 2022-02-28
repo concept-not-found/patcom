@@ -76,7 +76,12 @@ export const rest = Matcher(() => {
 
 export const matchArray = (expected) =>
   Matcher((value) => {
-    if (value === undefined || !value[Symbol.iterator]) {
+    const valueIsANumberBooleanStringOrFunction = typeof value !== 'object'
+    if (
+      value === undefined ||
+      !value[Symbol.iterator] ||
+      valueIsANumberBooleanStringOrFunction
+    ) {
       return unmatched
     }
     if (expected === undefined) {
