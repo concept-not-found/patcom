@@ -113,7 +113,7 @@ const patcom = (
     </div>
     <div>
       {'    '}
-      <Add>({'{ body, rest }) =>'}</Add>
+      <Add>({'{ status, body, ...rest }) =>'}</Add>
     </div>
     <div>
       {'      '}

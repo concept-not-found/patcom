@@ -240,8 +240,9 @@ export const ResHandler = (handleData, handleRedirect, retry, throwSomething) =>
 
     handle(req, res) {
       match(res)(
-        when({ status: 200, body: defined, rest }, ({ body }, { rest }) =>
-          handleData(body, rest)
+        when(
+          { status: 200, body: defined, rest },
+          ({ status, body, ...rest }) => handleData(body, rest)
         ),
         when(
           { status: between(300, 400), destination: matchString() },

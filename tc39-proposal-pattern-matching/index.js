@@ -1,5 +1,5 @@
 import { Matcher, asMatcher, unmatched } from '../index.js'
-import ResettableIterator from '../resettable-iterator.js'
+import TimeJumpIterator from '../time-jump-iterator.js'
 
 export function cachedProperties(source) {
   const cache = {}
@@ -20,13 +20,13 @@ export const cachingOneOf = (...matchables) =>
       !Array.isArray(value) &&
       value[Symbol.iterator]
     if (iteratorValue) {
-      value = ResettableIterator(value)
+      value = TimeJumpIterator(value)
     } else if (typeof value === 'object') {
       value = cachedProperties(value)
     }
     for (const matchable of matchables) {
       if (iteratorValue) {
-        value.reset()
+        value.jump(0)
       }
       const matcher = asMatcher(matchable)
       const result = matcher(value)
