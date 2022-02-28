@@ -43,6 +43,12 @@ describe('matchArray', () => {
     expectUnmatched(result)
   })
 
+  test('unmatched on non-array value', () => {
+    const matcher = matchArray()
+    const result = matcher('alice')
+    expectUnmatched(result)
+  })
+
   test('unmatched when more elements than expected', () => {
     const matcher = matchArray([1, 2, 3])
     const result = matcher([1, 2, 3, 4])
