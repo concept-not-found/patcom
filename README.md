@@ -419,7 +419,7 @@ Directly useable `Matcher`s.
   const matcher = any
 
   matcher(undefined) ≡ { matched: true, value: undefined }
-  matcher({ key: 'value'}) ≡ { matched: true, value: { key: 'value' } }
+  matcher({ key: 'value' }) ≡ { matched: true, value: { key: 'value' } }
   ```
 
   </details>
