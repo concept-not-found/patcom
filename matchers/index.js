@@ -339,10 +339,16 @@ export const matchRegExp = (expected) =>
   })
 
 export const not = (matchable) =>
-  ValueMatcher((value) => {
+  IteratorMatcher((iterator) => {
     const matcher = asMatcher(matchable)
-    const result = matcher(value)
+    const time = iterator.now
+    const result = matcher(iterator)
+    iterator.jump(time)
     if (!result.matched) {
+      const { value, done } = iterator.next()
+      if (done) {
+        return unmatched
+      }
       return {
         matched: true,
         value,
