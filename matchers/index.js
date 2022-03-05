@@ -29,6 +29,12 @@ export const IteratorMatcher = (fn) => {
   }
 }
 
+export const asInternalIterator = (source) => {
+  const iterator = TimeJumpIterator(source[Symbol.iterator]())
+  iterator[internalIterator] = iterator
+  return iterator
+}
+
 export const asMatcher = (matchable) => {
   if (matchable === undefined) {
     return equals(undefined)
@@ -156,8 +162,7 @@ export const matchArray = (expected) =>
         result: [],
       }
     }
-    const iterator = TimeJumpIterator(value[Symbol.iterator]())
-    iterator[internalIterator] = iterator
+    const iterator = asInternalIterator(value)
     const values = []
     const results = []
     for (const element of expected) {
