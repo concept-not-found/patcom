@@ -1,4 +1,4 @@
-import { Matcher, asMatcher, unmatched } from '../index.js'
+import { ValueMatcher, asMatcher, unmatched } from '../index.js'
 import TimeJumpIterator from '../time-jump-iterator.js'
 
 export function cachedProperties(source) {
@@ -14,7 +14,7 @@ export function cachedProperties(source) {
 }
 
 export const cachingOneOf = (...matchables) =>
-  Matcher((value) => {
+  ValueMatcher((value) => {
     const iteratorValue =
       typeof value !== 'string' &&
       !Array.isArray(value) &&

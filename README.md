@@ -237,11 +237,11 @@ match (complex) (
 
 ## Custom matchers
 
-Define custom matchers with any logic. [`Matcher`](#core-concept)s are simply functions that take in a `value` and returns a [`Result`](#core-concept). Either the `value` is [`Matched`](#core-concept) or is [`Unmatched`](#core-concept).
+Define custom matchers with any logic. [`ValueMatcher`](#core-concept) is a helper function to define custom matchers. It wraps a function that takes in a `value` and returns a [`Result`](#core-concept). Either the `value` becomes [`Matched`](#core-concept) or is [`Unmatched`](#core-concept).
 
 <!-- prettier-ignore -->
 ```js
-function matchDuck(value) {
+const matchDuck = ValueMatcher((value) => {
   if (value.type === 'duck') {
     return {
       matched: true,
@@ -251,7 +251,7 @@ function matchDuck(value) {
   return {
     matched: false
   }
-}
+})
 
 ...
 
@@ -310,8 +310,8 @@ Everything except for `match` is actually a [`Matcher`](#core-concept), includin
 when ({ role: 'student' }, ...) ≡
 when (matchObject({ role: 'student' }), ...)
 
-when ([defined], ...) ≡
-when (matchArray([defined]), ...)
+when (['alice'], ...) ≡
+when (matchArray(['alice']), ...)
 
 when ('sit', ...) ≡
 when (matchString('sit'), ...)
@@ -331,7 +331,7 @@ when (matchBoolean(true), ...)
 
 Even the complex patterns are composed of simpler matchers.
 
-### Primatives
+### Primitives
 
 <!-- prettier-ignore -->
 ```js
@@ -363,11 +363,15 @@ when (
 
 ## Core concept
 
-At the heart of `patcom`, everything is built around a single concept, the `Matcher`. The `Matcher` takes any `value` and returns a `Result`, which is either `Matched` or `Unmatched`.
+At the heart of `patcom`, everything is built around a single concept, the `Matcher`. The `Matcher` takes any `value` and returns a `Result`, which is either `Matched` or `Unmatched`. Internally, the `Matcher` consumes a `TimeJumpIterator` to allow for lookahead.
+
+Custom matchers are easily implemented using the `ValueMatcher` helper function. It removes the need to handle the internals of `TimeJumpIterator`.
 
 <!-- prettier-ignore -->
 ```ts
-type Matcher<T> = (value: any) => Result<T>
+type Matcher<T> = (value: TimeJumpIterator<any> | any) => Result<T>
+
+function ValueMatcher<T>(fn: (value: any) => Result<T>): Matcher<T>
 
 type Result<T> = Matched<T> | Unmatched
 
@@ -381,11 +385,18 @@ type Unmatched = {
 }
 ```
 
-`IteratorMatcher` is a specialized `Matcher` subtype. `IteratorMatcher` direct consumes the iterator in `matchArray`. It is used to implement `group`, `maybe`, `rest` and `some`.
+For more advanced use cases the `IteratorMatcher` helper function is used to create `Matcher`s that directly handle the internals of `TimeJumpIterator` but do not need to be concerned with a plain `value` being passed in.
+
+The `TimeJumpIterator` works like a normal `Iterator`, except it has the ability to jump back to a previously state. This is useful for `Matcher`s that require lookahead. For example the [`maybe`](#maybe) matcher would remember the starting position with `const start = iterator.now`, readahead to see if there is a match, and if it fails, jumps the iterator back using `iterator.jump(start)`. This prevents the iterator from being consumed. If the iterator is consumed during the readahead and left untouched on unmatched, subsequent matchers will fail to match as they would never see the value that were consumed by readahead.
 
 <!-- prettier-ignore -->
 ```ts
-type IteratorMatcher<T> = (value: Iterable<T>) => Result<T[]>
+function IteratorMatcher<T>(fn: (value: TimeJumpIterator<any>) => Result<T>): Matcher<T>
+
+type TimeJumpIterator<T> = Iterator<T> & {
+  readonly now: number,
+  jump(time: number): void
+}
 ```
 
 ### Built-in `Matcher`s
@@ -513,6 +524,14 @@ Builders to create a `Matcher`.
 
   matcher('alice') ≡ { matched: false }
   matcher(42) ≡ { matched: true, value: 42 }
+  ```
+
+  <!-- prettier-ignore -->
+  ```js
+  const matcher = equals(undefined)
+
+  matcher(undefined) ≡ { matched: true, value: undefined }
+  matcher(42) ≡ { matched: false }
   ```
 
   </details>
@@ -791,7 +810,7 @@ Creates a `Matcher` from other `Matcher`s.
   function matchArray<T>(expected?: T[]): Matcher<T[]>
   ```
 
-  Matches `expected` array completely. Primatives in `expected` are wrapped with their corresponding `Matcher` builder. `expected` array can also include [`IteratorMatcher`](#core-concept)s which can consume multiple elements. Matches any defined array if `expected` is not provided.
+  Matches `expected` array completely. Primitives in `expected` are wrapped with their corresponding `Matcher` builder. `expected` array can also include [`IteratorMatcher`](#core-concept)s which can consume multiple elements. Matches any defined array if `expected` is not provided.
   <details>
   <summary>Example</summary>
 
@@ -820,7 +839,7 @@ Creates a `Matcher` from other `Matcher`s.
 
   matcher([42, 'alice']) ≡ {
     matched: true,
-    value: [42, 'alice'],
+    value: [42, 'alice', []],
     result: [
       { matched: true, value: 42 },
       { matched: true, value: 'alice' },
@@ -829,7 +848,7 @@ Creates a `Matcher` from other `Matcher`s.
   }
   matcher([42, 'alice', true, 69]) ≡ {
     matched: true,
-    value: [42, 'alice', true, 69],
+    value: [42, 'alice', [true, 69]],
     result: [
       { matched: true, value: 42 },
       { matched: true, value: 'alice' },
@@ -852,17 +871,16 @@ Creates a `Matcher` from other `Matcher`s.
     result: [
       {
         matched: true,
-        value: ['alice'],
-        result: { matched: true, value: 'alice' },
+        value: 'alice'
       },
       { matched: true, value: 'bob' }
     ]
   }
   matcher(['bob']) ≡ {
     matched: true,
-    value: ['bob'],
+    value: [undefined, 'bob'],
     result: [
-      { matched: true, value: [] },
+      { matched: true, value: undefined },
       { matched: true, value: 'bob' }
     ]
   }
@@ -877,7 +895,7 @@ Creates a `Matcher` from other `Matcher`s.
 
   matcher(['alice', 'alice', 'bob']) ≡ {
     matched: true,
-    value: ['alice', 'alice', 'bob'],
+    value: [['alice', 'alice'], 'bob'],
     result: [
       {
         matched: true,
@@ -892,6 +910,33 @@ Creates a `Matcher` from other `Matcher`s.
   }
 
   matcher(['eve', 'bob']) ≡ { matched: false }
+  matcher(['bob']) ≡ { matched: false }
+  ```
+
+  <!-- prettier-ignore -->
+  ```js
+  const matcher = matchArray([group('alice', 'fred'), 'bob'])
+
+  matcher(['alice', 'fred', 'bob']) ≡ {
+    matched: true,
+    value: [['alice', 'fred'], 'bob'],
+    result: [
+      {
+        matched: true,
+        value: ['alice', 'fred'],
+        result: [
+          { matched: true, value: 'alice' },
+          { matched: true, value: 'fred' }
+        ]
+      },
+      { matched: true, value: 'bob' }
+    ]
+  }
+
+  matcher(['alice', 'eve', 'bob']) ≡ { matched: false }
+  matcher(['eve', 'fred', 'bob']) ≡ { matched: false }
+  matcher(['alice', 'bob']) ≡ { matched: false }
+  matcher(['fred', 'bob']) ≡ { matched: false }
   matcher(['bob']) ≡ { matched: false }
   ```
 
@@ -918,7 +963,7 @@ Creates a `Matcher` from other `Matcher`s.
   function matchObject<T>(expected?: T): Matcher<T>
   ```
 
-  Matches `expected` enumerable object properties completely or partially with [`rest`](#rest) matcher. Primatives in `expected` are wrapped with their corresponding `Matcher` builder. Rest of properties can be founds in `result` object. Matches any defined object if `expected` is not provided.
+  Matches `expected` enumerable object properties completely or partially with [`rest`](#rest) matcher. Primitives in `expected` are wrapped with their corresponding `Matcher` builder. Rest of properties can be found on the `value` with the rest key. Matches any defined object if `expected` is not provided.
   <details>
   <summary>Example</summary>
 
@@ -954,7 +999,7 @@ Creates a `Matcher` from other `Matcher`s.
 
   matcher({ x: 42, y: 'alice' }) ≡ {
     matched: true,
-    value: { x: 42, y: 'alice' },
+    value: { x: 42, y: 'alice', rest: {} },
     result: {
       x: { matched: true, value: 42 },
       y: { matched: true, value: 'alice' },
@@ -963,7 +1008,7 @@ Creates a `Matcher` from other `Matcher`s.
   }
   matcher({ x: 42, y: 'alice', z: true, aa: 69 }) ≡ {
     matched: true,
-    value: { x: 42, y: 'alice', z: true, aa: 69 },
+    value: { x: 42, y: 'alice', rest: { z: true, aa: 69 } },
     result: {
       x: { matched: true, value: 42 },
       y: { matched: true, value: 'alice' },
@@ -981,11 +1026,11 @@ Creates a `Matcher` from other `Matcher`s.
 
   matcher({ x: 42, y: 'alice', z: true }) ≡ {
     matched: true,
-    value: { x: 42, y: 'alice', z: true },
+    value: { x: 42, y: 'alice', customRestKey: { z: true } },
     result: {
       x: { matched: true, value: 42 },
       y: { matched: true, value: 'alice' },
-      customRestKey: { matched: true, value: {z: true} }
+      customRestKey: { matched: true, value: { z: true } }
     }
   }
   ```
@@ -1014,7 +1059,7 @@ Creates a `Matcher` from other `Matcher`s.
   function group<T>(...expected: T[]): Matcher<T[]>
   ```
 
-  An [`IteratorMatcher`](#core-concept) that is only valid as element of [`matchArray`](#matcharray). This consumes all a sequence of element matching `expected` array. Similar to regular expression group. `group` composes with `maybe` and `some`.
+  An [`IteratorMatcher`](#core-concept) that consumes all a sequence of element matching `expected` array. Similar to regular expression group.
     <details>
     <summary>Example</summary>
 
@@ -1025,7 +1070,7 @@ Creates a `Matcher` from other `Matcher`s.
 
   matcher(['alice', 'fred', 'bob']) ≡ {
     matched: true,
-    value: ['alice', 'fred', 'bob'],
+    value: [['alice', 'fred'], 'bob'],
     result: [
       {
         matched: true,
@@ -1052,13 +1097,13 @@ Creates a `Matcher` from other `Matcher`s.
 
   matcher(['fred', 'bob']) ≡ {
     matched: true,
-    value: ['fred', 'bob'],
+    value: [[undefined, 'fred'], 'bob'],
     result: [
       {
         matched: true,
-        value: ['fred'],
+        value: [undefined, 'fred'],
         result: [
-          { matched: true, value: [] },
+          { matched: true, value: undefined },
           { matched: true, value: 'fred' }
         ]
       },
@@ -1067,17 +1112,13 @@ Creates a `Matcher` from other `Matcher`s.
   }
   matcher(['alice', 'fred', 'bob']) ≡ {
     matched: true,
-    value: ['alice', 'fred', 'bob'],
+    value: [['alice', 'fred'], 'bob'],
     result: [
       {
         matched: true,
         value: ['alice', 'fred'],
         result: [
-          {
-            matched: true,
-            value: ['alice'],
-            result: { matched: true, value: 'alice' }
-          },
+          { matched: true, value: 'alice' },
           { matched: true, value: 'fred' }
         ]
       },
@@ -1092,16 +1133,18 @@ Creates a `Matcher` from other `Matcher`s.
 
   matcher(['alice', 'fred', 'bob']) ≡ {
     matched: true,
-    value: ['alice', 'fred', 'bob'],
+    value: [[['alice'], 'fred'], 'bob'],
     result: [
       {
         matched: true,
-        value: ['alice', 'fred'],
+        value: [['alice'], 'fred'],
         result: [
           {
             matched: true,
             value: ['alice'],
-            result: [{ matched: true, value: 'alice' }]
+            result: [
+              { matched: true, value: 'alice' }
+            ]
           },
           { matched: true, value: 'fred' }
         ]
@@ -1111,11 +1154,11 @@ Creates a `Matcher` from other `Matcher`s.
   }
   matcher(['alice', 'alice', 'fred', 'bob']) ≡ {
     matched: true,
-    value: ['alice', 'alice', 'fred', 'bob'],
+    value: [[['alice', 'alice'], 'fred'], 'bob'],
     result: [
       {
         matched: true,
-        value: ['alice', 'alice', 'fred'],
+        value: [['alice', 'alice'], 'fred'],
         result: [
           {
             matched: true,
@@ -1144,7 +1187,7 @@ Creates a `Matcher` from other `Matcher`s.
   function maybe<T>(expected: T): Matcher<T | undefined>
   ```
 
-  An [`IteratorMatcher`](#core-concept) that is only valid as element of [`matchArray`](#matcharray). This consumes an element in the array if it matches `expected`, otherwise does nothing. The unmatched element can be consumed by the next matcher. Similar to regular expression `?` operator. `maybe` composes with `group` and `some`.
+  An [`IteratorMatcher`](#core-concept) that consumes an element in the array if it matches `expected`, otherwise does nothing. The unmatched element can be consumed by the next matcher. Similar to regular expression `?` operator.
   <details>
   <summary>Example</summary>
 
@@ -1156,19 +1199,15 @@ Creates a `Matcher` from other `Matcher`s.
     matched: true,
     value: ['alice', 'bob'],
     result: [
-      {
-        matched: true,
-        value: ['alice'],
-        result: { matched: true, value: 'alice' }
-      },
+      { matched: true, value: 'alice' },
       { matched: true, value: 'bob' }
     ]
   }
   matcher(['bob']) ≡ {
     matched: true,
-    value: ['bob'],
+    value: [undefined, 'bob'],
     result: [
-      { matched: true, value: [] },
+      { matched: true, value: undefined },
       { matched: true, value: 'bob' }
     ]
   }
@@ -1183,28 +1222,24 @@ Creates a `Matcher` from other `Matcher`s.
 
   matcher(['alice', 'fred', 'bob']) ≡ {
     matched: true,
-    value: ['alice', 'fred', 'bob'],
+    value: [['alice', 'fred'], 'bob'],
     result: [
       {
         matched: true,
         value: ['alice', 'fred'],
-        result: {
-          matched: true,
-          value: ['alice', 'fred'],
-          result: [
-            { matched: true, value: 'alice' },
-            { matched: true, value: 'fred' }
-          ]
-        }
+        result: [
+          { matched: true, value: 'alice' },
+          { matched: true, value: 'fred' }
+        ]
       },
       { matched: true, value: 'bob' },
     ]
   }
   matcher(['bob']) ≡ {
     matched: true,
-    value: ['bob'],
+    value: [undefined, 'bob'],
     result: [
-      { matched: true, value: [] },
+      { matched: true, value: undefined },
       { matched: true, value: 'bob' }
     ]
   }
@@ -1216,46 +1251,38 @@ Creates a `Matcher` from other `Matcher`s.
 
   matcher(['alice', 'bob']) ≡ {
     matched: true,
-    value: ['alice', 'bob'],
+    value: [['alice'], 'bob'],
     result: [
       {
         matched: true,
         value: ['alice'],
-        result: {
-          matched: true,
-          value: ['alice'],
-          result: [
-            { matched: true, value: 'alice' }
-          ]
-        }
+        result: [
+          { matched: true, value: 'alice' }
+        ]
       },
       { matched: true, value: 'bob' }
     ]
   }
   matcher(['alice', 'alice', 'bob']) ≡ {
     matched: true,
-    value: ['alice', 'bob'],
+    value: [['alice', 'alice'], 'bob'],
     result: [
       {
         matched: true,
         value: ['alice', 'alice'],
-        result: {
-          matched: true,
-          value: ['alice', 'alice'],
-          result: [
-            { matched: true, value: 'alice' },
-            { matched: true, value: 'alice' }
-          ]
-        }
+        result: [
+          { matched: true, value: 'alice' },
+          { matched: true, value: 'alice' }
+        ]
       },
       { matched: true, value: 'bob' }
     ]
   }
   matcher(['bob']) ≡ {
     matched: true,
-    value: ['bob'],
+    value: [undefined, 'bob'],
     result: [
-      { matched: true, value: [] },
+      { matched: true, value: undefined },
       { matched: true, value: 'bob' }
     ]
   }
@@ -1270,7 +1297,7 @@ Creates a `Matcher` from other `Matcher`s.
   function not<T>(unexpected: T): Matcher<T>
   ```
 
-  Matches if value does not match `unexpected`. Primatives in `unexpected` are wrapped with their corresponding `Matcher` builder
+  Matches if value does not match `unexpected`. Primitives in `unexpected` are wrapped with their corresponding `Matcher` builder
   <details>
   <summary>Example</summary>
 
@@ -1293,7 +1320,7 @@ Creates a `Matcher` from other `Matcher`s.
   const rest: Matcher<any>
   ```
 
-  An [`IteratorMatcher`](#core-concept) that is only valid as element of [`matchArray`](#matcharray) or property of [`matchObject`](#matchobject). This consumes the remaining elements/properties to prefix matching of arrays and partial matching of objects.
+  An [`IteratorMatcher`](#core-concept) that consumes the remaining elements/properties to prefix matching of arrays and partial matching of objects.
   <details>
   <summary>Example</summary>
 
@@ -1308,15 +1335,7 @@ Creates a `Matcher` from other `Matcher`s.
       rest
     },
     (
-      { headers: [{ value: cookieValue }] },
-      {
-        result: {
-          headers: {
-            result: [, { value: restOfHeaders }],
-          },
-          rest: { value: restOfResponse },
-        },
-      }
+      { headers: [{ value: cookieValue }, restOfHeaders], rest: restOfResponse },
     ) => ({
       cookieValue,
       restOfHeaders,
@@ -1346,7 +1365,7 @@ Creates a `Matcher` from other `Matcher`s.
 
   matcher([42, 'alice']) ≡ {
     matched: true,
-    value: [42, 'alice'],
+    value: [42, 'alice', []],
     result: [
       { matched: true, value: 42 },
       { matched: true, value: 'alice' },
@@ -1355,7 +1374,7 @@ Creates a `Matcher` from other `Matcher`s.
   }
   matcher([42, 'alice', true, 69]) ≡ {
     matched: true,
-    value: [42, 'alice', true, 69],
+    value: [42, 'alice', [true, 69]],
     result: [
       { matched: true, value: 42 },
       { matched: true, value: 'alice' },
@@ -1374,7 +1393,7 @@ Creates a `Matcher` from other `Matcher`s.
 
   matcher({ x: 42, y: 'alice' }) ≡ {
     matched: true,
-    value: { x: 42, y: 'alice' },
+    value: { x: 42, y: 'alice', rest: {} },
     result: {
       x: { matched: true, value: 42 },
       y: { matched: true, value: 'alice' },
@@ -1383,7 +1402,7 @@ Creates a `Matcher` from other `Matcher`s.
   }
   matcher({ x: 42, y: 'alice', z: true, aa: 69 }) ≡ {
     matched: true,
-    value: { x: 42, y: 'alice', z: true, aa: 69 },
+    value: { x: 42, y: 'alice', rest: { z: true, aa: 69 } },
     result: {
       x: { matched: true, value: 42 },
       y: { matched: true, value: 'alice' },
@@ -1401,11 +1420,11 @@ Creates a `Matcher` from other `Matcher`s.
 
   matcher({ x: 42, y: 'alice', z: true }) ≡ {
     matched: true,
-    value: { x: 42, y: 'alice', z: true },
+    value: { x: 42, y: 'alice', customRestKey: { z: true } },
     result: {
       x: { matched: true, value: 42 },
       y: { matched: true, value: 'alice' },
-      customRestKey: { matched: true, value: {z: true} }
+      customRestKey: { matched: true, value: { z: true } }
     }
   }
   ```
@@ -1419,7 +1438,7 @@ Creates a `Matcher` from other `Matcher`s.
   function some<T>(expected: T): Matcher<T[]>
   ```
 
-  An [`IteratorMatcher`](#core-concept) that is only valid as element of [`matchArray`](#matcharray). This consumes all consecutive element matching `expected` in the array until it reaches the end or encounters an unmatched element. The unmatched element can be consumed by the next matcher. At least one element must match. Similar to regular expression `+` operator. `some` composes with `group` **but not `maybe`**. Attempting to compose with `maybe` will throw an error as it would otherwise lead to an infinite loop.
+  An [`IteratorMatcher`](#core-concept) that consumes all consecutive element matching `expected` in the array until it reaches the end or encounters an unmatched element. The unmatched element can be consumed by the next matcher. At least one element must match. Similar to regular expression `+` operator. **`some` does not compose with matchers that consume nothing, such as `maybe`**. Attempting to compose with `maybe` will throw an error as it would otherwise lead to an infinite loop.
   <details>
   <summary>Example</summary>
 
@@ -1429,7 +1448,7 @@ Creates a `Matcher` from other `Matcher`s.
 
   matcher(['alice', 'alice', 'bob']) ≡ {
     matched: true,
-    value: ['alice', 'alice', 'bob'],
+    value: [['alice', 'alice'], 'bob'],
     result: [
       {
         matched: true,
@@ -1453,11 +1472,11 @@ Creates a `Matcher` from other `Matcher`s.
 
   matcher(['alice', 'fred', 'bob']) ≡ {
     matched: true,
-    value: ['alice', 'fred', 'bob'],
+    value: [[['alice', 'fred']], 'bob'],
     result: [
       {
         matched: true,
-        value: ['alice', 'fred'],
+        value: [['alice', 'fred']],
         result: [
           {
             matched: true,
@@ -1474,11 +1493,11 @@ Creates a `Matcher` from other `Matcher`s.
   }
   matcher(['alice', 'fred', 'alice', 'fred', 'bob']) ≡ {
     matched: true,
-    value: ['alice', 'fred', 'alice', 'fred', 'bob'],
+    value: [[['alice', 'fred'], ['alice', 'fred']], 'bob'],
     result: [
       {
         matched: true,
-        value: ['alice', 'fred', 'alice', 'fred'],
+        value: [['alice', 'fred'], ['alice', 'fred']],
         result: [
           {
             matched: true,
@@ -1512,7 +1531,7 @@ Creates a `Matcher` from other `Matcher`s.
   function allOf<T>(expected: ...T): Matcher<T>
   ```
 
-  Matches if all `expected` matchers are matched. Primatives in `expected` are wrapped with their corresponding `Matcher` builder. Always matches if `expected` is empty.
+  Matches if all `expected` matchers are matched. Primitives in `expected` are wrapped with their corresponding `Matcher` builder. Always matches if `expected` is empty.
   <details>
   <summary>Example</summary>
 
@@ -1554,7 +1573,7 @@ Creates a `Matcher` from other `Matcher`s.
   function oneOf<T>(expected: ...T): Matcher<T>
   ```
 
-  Matches first `expected` matcher that matches. Primatives in `expected` are wrapped with their corresponding `Matcher` builder. Always unmatched when empty `expected`. Similar to [`match`](#match). Similar to the regular expression `|` operator.
+  Matches first `expected` matcher that matches. Primitives in `expected` are wrapped with their corresponding `Matcher` builder. Always unmatched when empty `expected`. Similar to [`match`](#match). Similar to the regular expression `|` operator.
   <details>
   <summary>Example</summary>
 
@@ -1741,6 +1760,8 @@ Consumes `Matcher`s to produce a value.
 ### Differences
 
 The most notable different is `patcom` implemented [enumerable object properties](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Enumerability_and_ownership_of_properties) matching, where as TC39 pattern matching proposal implements partial object matching. See [tc39/proposal-pattern-matching#243](https://github.com/tc39/proposal-pattern-matching/issues/243). The [`rest`](#rest) matcher can be used to achieve partial object matching.
+
+`patcom` also handles holes in arrays differently. Holes in arrays in TC39 pattern matching proposal will match anything, where as `patcom` uses the more literial meaning of `undefined` as one would expect with holes in arrays defined in standard JavaScript. The [`any`](#any) matcher must be explicity used if one desires to match anything for a specific array position.
 
 Since `patcom` had to separate the pattern matching from destructuring, enumerable object properties matching is the most sensible. Syntactically separation of the pattern from destructuring is the biggest difference.
 

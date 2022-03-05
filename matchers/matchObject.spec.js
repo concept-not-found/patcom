@@ -1,6 +1,6 @@
 import { expectMatched, expectUnmatched } from './test-utils.js'
 
-import { matchObject, defined, rest } from './index.js'
+import { matchObject, oneOf, not, defined, rest } from './index.js'
 
 describe('matchObject', () => {
   test('empty expected matches any object', () => {
@@ -59,8 +59,10 @@ describe('matchObject', () => {
     expectMatched(result)
     expect(result.value).toEqual({
       x: 1,
-      y: 2,
-      z: 3,
+      rest: {
+        y: 2,
+        z: 3,
+      },
     })
     expect(result.result.rest.value).toEqual({
       y: 2,
@@ -76,7 +78,15 @@ describe('matchObject', () => {
       x: 1,
       y: 2,
       z: 3,
+      rest: {},
     })
     expect(result.result.rest.value).toEqual({})
+  })
+
+  test('composes with oneOf', () => {
+    const matcher = matchObject({ x: oneOf(1, undefined), y: 2 })
+    expectMatched(matcher({ y: 2 }))
+    expectMatched(matcher({ x: 1, y: 2 }))
+    expectUnmatched(matcher({ x: 3, y: 2 }))
   })
 })

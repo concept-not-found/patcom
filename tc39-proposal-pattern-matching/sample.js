@@ -1,5 +1,6 @@
 import {
   matcher,
+  ValueMatcher,
   matchNumber,
   matchBigInt,
   matchString,
@@ -14,6 +15,7 @@ import {
   when,
   otherwise,
   between,
+  any,
 } from '../index.js'
 
 import { match } from './index.js'
@@ -36,7 +38,7 @@ export const ArrayLength =
     match(res)(
       when({}, () => handleEmpty()),
       when({ data: [defined] }, ({ data: [page] }) => handleSinglePage(page)),
-      when({ data: [defined, rest] }, ({ data: [frontPage, ...pages] }) =>
+      when({ data: [defined, rest] }, ({ data: [frontPage, pages] }) =>
         handleMultiplePages(frontPage, pages)
       ),
       otherwise(() => handleOtherwise())
@@ -162,13 +164,13 @@ export class Option {
   }
 }
 
-Option.Some[matcher] = (val) => ({
+Option.Some[matcher] = ValueMatcher((val) => ({
   matched: val instanceof Option && val.hasValue,
   value: val instanceof Option && val.hasValue && val.value,
-})
-Option.None[matcher] = (val) => ({
+}))
+Option.None[matcher] = ValueMatcher((val) => ({
   matched: val instanceof Option && !val.hasValue,
-})
+}))
 
 export const CustomMatcherOption = (result) =>
   match(result)(
@@ -193,7 +195,9 @@ export const FetchJsonResponse = async (fetch, jsonService) => {
 }
 
 export const NilPattern = (someArr) =>
-  match(someArr)(when([, , defined], ([, , someVal]) => console.log(someVal)))
+  match(someArr)(
+    when([any, any, defined], ([, , someVal]) => console.log(someVal))
+  )
 
 export const ObjectPatternCaching = () => {
   const randomItem = {
@@ -240,9 +244,8 @@ export const ResHandler = (handleData, handleRedirect, retry, throwSomething) =>
 
     handle(req, res) {
       match(res)(
-        when(
-          { status: 200, body: defined, rest },
-          ({ status, body, ...rest }) => handleData(body, rest)
+        when({ status: 200, body: defined, rest }, ({ body, rest }) =>
+          handleData(body, rest)
         ),
         when(
           { status: between(300, 400), destination: matchString() },

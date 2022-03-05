@@ -59,17 +59,10 @@ describe('samples', () => {
         ],
         rest,
       },
-      (
-        { headers: [{ value: cookieValue }] },
-        {
-          result: {
-            headers: {
-              result: [, { value: restOfHeaders }],
-            },
-            rest: { value: restOfResponse },
-          },
-        }
-      ) => ({ cookieValue, restOfHeaders, restOfResponse })
+      ({
+        headers: [{ value: cookieValue }, restOfHeaders],
+        rest: restOfResponse,
+      }) => ({ cookieValue, restOfHeaders, restOfResponse })
     )
 
     test('extra headers and response values are accessible', () => {
@@ -100,7 +93,7 @@ describe('samples', () => {
 
       expect(matcher([42, 'alice'])).toEqual({
         matched: true,
-        value: [42, 'alice'],
+        value: [42, 'alice', []],
         result: [
           { matched: true, value: 42 },
           { matched: true, value: 'alice' },
@@ -109,7 +102,7 @@ describe('samples', () => {
       })
       expect(matcher([42, 'alice', true, 69])).toEqual({
         matched: true,
-        value: [42, 'alice', true, 69],
+        value: [42, 'alice', [true, 69]],
         result: [
           { matched: true, value: 42 },
           { matched: true, value: 'alice' },
@@ -129,7 +122,7 @@ describe('samples', () => {
 
       expect(matcher({ x: 42, y: 'alice' })).toEqual({
         matched: true,
-        value: { x: 42, y: 'alice' },
+        value: { x: 42, y: 'alice', rest: {} },
         result: {
           x: { matched: true, value: 42 },
           y: { matched: true, value: 'alice' },
@@ -138,7 +131,11 @@ describe('samples', () => {
       })
       expect(matcher({ x: 42, y: 'alice', z: true, aa: 69 })).toEqual({
         matched: true,
-        value: { x: 42, y: 'alice', z: true, aa: 69 },
+        value: {
+          x: 42,
+          y: 'alice',
+          rest: { z: true, aa: 69 },
+        },
         result: {
           x: { matched: true, value: 42 },
           y: { matched: true, value: 'alice' },
@@ -154,7 +151,11 @@ describe('samples', () => {
 
       expect(matcher({ x: 42, y: 'alice', z: true })).toEqual({
         matched: true,
-        value: { x: 42, y: 'alice', z: true },
+        value: {
+          x: 42,
+          y: 'alice',
+          customRestKey: { z: true },
+        },
         result: {
           x: { matched: true, value: 42 },
           y: { matched: true, value: 'alice' },
@@ -174,17 +175,16 @@ describe('samples', () => {
         result: [
           {
             matched: true,
-            value: ['alice'],
-            result: { matched: true, value: 'alice' },
+            value: 'alice',
           },
           { matched: true, value: 'bob' },
         ],
       })
       expect(matcher(['bob'])).toEqual({
         matched: true,
-        value: ['bob'],
+        value: [undefined, 'bob'],
         result: [
-          { matched: true, value: [] },
+          { matched: true, value: undefined },
           { matched: true, value: 'bob' },
         ],
       })
@@ -197,28 +197,24 @@ describe('samples', () => {
 
       expect(matcher(['alice', 'fred', 'bob'])).toEqual({
         matched: true,
-        value: ['alice', 'fred', 'bob'],
+        value: [['alice', 'fred'], 'bob'],
         result: [
           {
             matched: true,
             value: ['alice', 'fred'],
-            result: {
-              matched: true,
-              value: ['alice', 'fred'],
-              result: [
-                { matched: true, value: 'alice' },
-                { matched: true, value: 'fred' },
-              ],
-            },
+            result: [
+              { matched: true, value: 'alice' },
+              { matched: true, value: 'fred' },
+            ],
           },
           { matched: true, value: 'bob' },
         ],
       })
       expect(matcher(['bob'])).toEqual({
         matched: true,
-        value: ['bob'],
+        value: [undefined, 'bob'],
         result: [
-          { matched: true, value: [] },
+          { matched: true, value: undefined },
           { matched: true, value: 'bob' },
         ],
       })
@@ -229,44 +225,36 @@ describe('samples', () => {
 
       expect(matcher(['alice', 'bob'])).toEqual({
         matched: true,
-        value: ['alice', 'bob'],
+        value: [['alice'], 'bob'],
         result: [
           {
             matched: true,
             value: ['alice'],
-            result: {
-              matched: true,
-              value: ['alice'],
-              result: [{ matched: true, value: 'alice' }],
-            },
+            result: [{ matched: true, value: 'alice' }],
           },
           { matched: true, value: 'bob' },
         ],
       })
       expect(matcher(['alice', 'alice', 'bob'])).toEqual({
         matched: true,
-        value: ['alice', 'alice', 'bob'],
+        value: [['alice', 'alice'], 'bob'],
         result: [
           {
             matched: true,
             value: ['alice', 'alice'],
-            result: {
-              matched: true,
-              value: ['alice', 'alice'],
-              result: [
-                { matched: true, value: 'alice' },
-                { matched: true, value: 'alice' },
-              ],
-            },
+            result: [
+              { matched: true, value: 'alice' },
+              { matched: true, value: 'alice' },
+            ],
           },
           { matched: true, value: 'bob' },
         ],
       })
       expect(matcher(['bob'])).toEqual({
         matched: true,
-        value: ['bob'],
+        value: [undefined, 'bob'],
         result: [
-          { matched: true, value: [] },
+          { matched: true, value: undefined },
           { matched: true, value: 'bob' },
         ],
       })
@@ -279,7 +267,7 @@ describe('samples', () => {
 
       expect(matcher(['alice', 'alice', 'bob'])).toEqual({
         matched: true,
-        value: ['alice', 'alice', 'bob'],
+        value: [['alice', 'alice'], 'bob'],
         result: [
           {
             matched: true,
@@ -301,11 +289,11 @@ describe('samples', () => {
 
       expect(matcher(['alice', 'fred', 'bob'])).toEqual({
         matched: true,
-        value: ['alice', 'fred', 'bob'],
+        value: [[['alice', 'fred']], 'bob'],
         result: [
           {
             matched: true,
-            value: ['alice', 'fred'],
+            value: [['alice', 'fred']],
             result: [
               {
                 matched: true,
@@ -322,11 +310,20 @@ describe('samples', () => {
       })
       expect(matcher(['alice', 'fred', 'alice', 'fred', 'bob'])).toEqual({
         matched: true,
-        value: ['alice', 'fred', 'alice', 'fred', 'bob'],
+        value: [
+          [
+            ['alice', 'fred'],
+            ['alice', 'fred'],
+          ],
+          'bob',
+        ],
         result: [
           {
             matched: true,
-            value: ['alice', 'fred', 'alice', 'fred'],
+            value: [
+              ['alice', 'fred'],
+              ['alice', 'fred'],
+            ],
             result: [
               {
                 matched: true,
@@ -358,7 +355,7 @@ describe('samples', () => {
 
       expect(matcher(['alice', 'fred', 'bob'])).toEqual({
         matched: true,
-        value: ['alice', 'fred', 'bob'],
+        value: [['alice', 'fred'], 'bob'],
         result: [
           {
             matched: true,
@@ -383,13 +380,13 @@ describe('samples', () => {
 
       expect(matcher(['fred', 'bob'])).toEqual({
         matched: true,
-        value: ['fred', 'bob'],
+        value: [[undefined, 'fred'], 'bob'],
         result: [
           {
             matched: true,
-            value: ['fred'],
+            value: [undefined, 'fred'],
             result: [
-              { matched: true, value: [] },
+              { matched: true, value: undefined },
               { matched: true, value: 'fred' },
             ],
           },
@@ -398,17 +395,13 @@ describe('samples', () => {
       })
       expect(matcher(['alice', 'fred', 'bob'])).toEqual({
         matched: true,
-        value: ['alice', 'fred', 'bob'],
+        value: [['alice', 'fred'], 'bob'],
         result: [
           {
             matched: true,
             value: ['alice', 'fred'],
             result: [
-              {
-                matched: true,
-                value: ['alice'],
-                result: { matched: true, value: 'alice' },
-              },
+              { matched: true, value: 'alice' },
               { matched: true, value: 'fred' },
             ],
           },
@@ -421,11 +414,11 @@ describe('samples', () => {
 
       expect(matcher(['alice', 'fred', 'bob'])).toEqual({
         matched: true,
-        value: ['alice', 'fred', 'bob'],
+        value: [[['alice'], 'fred'], 'bob'],
         result: [
           {
             matched: true,
-            value: ['alice', 'fred'],
+            value: [['alice'], 'fred'],
             result: [
               {
                 matched: true,
@@ -440,11 +433,11 @@ describe('samples', () => {
       })
       expect(matcher(['alice', 'alice', 'fred', 'bob'])).toEqual({
         matched: true,
-        value: ['alice', 'alice', 'fred', 'bob'],
+        value: [[['alice', 'alice'], 'fred'], 'bob'],
         result: [
           {
             matched: true,
-            value: ['alice', 'alice', 'fred'],
+            value: [['alice', 'alice'], 'fred'],
             result: [
               {
                 matched: true,
