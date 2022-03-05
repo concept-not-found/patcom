@@ -399,6 +399,24 @@ type TimeJumpIterator<T> = Iterator<T> & {
 }
 ```
 
+Use the `asInternalIterator` to pass an existing iterator into a `Matcher`.
+
+<!-- prettier-ignore -->
+```ts
+const matcher = group('a', 'b', 'c')
+const iterator = 'abc'.split('');
+
+matcher(asInternalIterator(iterator)) ≡ {
+  matched: true,
+  value: ['a', 'b', 'c'],
+  result: [
+    { matched: true, value: 'a' },
+    { matched: true, value: 'b' },
+    { matched: true, value: 'c' }
+  ]
+}
+```
+
 ### Built-in `Matcher`s
 
 Directly useable `Matcher`s.

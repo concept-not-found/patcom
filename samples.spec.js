@@ -1,5 +1,6 @@
 import { expectUnmatched } from './matchers/test-utils.js'
 import {
+  asInternalIterator,
   group,
   some,
   maybe,
@@ -455,6 +456,30 @@ describe('samples', () => {
       })
 
       expectUnmatched(matcher(['fred', 'bob']))
+    })
+  })
+
+  test('use asInternalIterator', () => {
+    const matcher = group('a', 'b', 'c')
+    const iterator = 'abc'.split('')
+
+    expect(matcher(asInternalIterator(iterator))).toEqual({
+      matched: true,
+      value: ['a', 'b', 'c'],
+      result: [
+        {
+          matched: true,
+          value: 'a',
+        },
+        {
+          matched: true,
+          value: 'b',
+        },
+        {
+          matched: true,
+          value: 'c',
+        },
+      ],
     })
   })
 })
