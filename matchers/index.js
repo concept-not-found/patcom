@@ -5,27 +5,36 @@ export const unmatched = {
   matched: false,
 }
 
-export const matcher = Symbol('matcher')
-export const Matcher = (fn) => {
-  fn[matcher] = fn
-  return fn
-}
+const internalIterator = Symbol('internal iterator')
 
-export const iteratorMatcher = Symbol('iterator matcher')
+export const matcher = Symbol('matcher')
+export const ValueMatcher = (fn) =>
+  IteratorMatcher((iterator) => {
+    const { value, done } = iterator.next()
+    if (done) {
+      return unmatched
+    }
+    return fn(value)
+  })
+
 export const IteratorMatcher = (fn) => {
-  fn[iteratorMatcher] = fn
-  return fn
+  fn[matcher] = fn
+  return (value) => {
+    const iterator =
+      typeof value === 'object' && value[internalIterator]
+        ? value
+        : TimeJumpIterator([value][Symbol.iterator]())
+    iterator[internalIterator] = iterator
+    return fn(iterator)
+  }
 }
 
 export const asMatcher = (matchable) => {
   if (matchable === undefined) {
-    return any
+    return equals(undefined)
   }
   if (matchable[matcher]) {
     return matchable[matcher]
-  }
-  if (matchable[iteratorMatcher]) {
-    return matchable[iteratorMatcher]
   }
   if (Array.isArray(matchable)) {
     return matchArray(matchable)
@@ -56,39 +65,14 @@ export const maybe = (expected) =>
   IteratorMatcher((iterator) => {
     const time = iterator.now
     const matcher = asMatcher(expected)
-    let result
-    if (matcher[iteratorMatcher]) {
-      result = matcher(iterator)
-    } else {
-      const { value, done } = iterator.next()
-      if (done) {
-        iterator.jump(time)
-        return {
-          matched: true,
-          value: [],
-        }
-      }
-      result = matcher(value)
-    }
+    const result = matcher(iterator)
     if (result.matched) {
-      if (matcher[iteratorMatcher]) {
-        return {
-          matched: true,
-          value: result.value,
-          result,
-        }
-      } else {
-        return {
-          matched: true,
-          value: [result.value],
-          result,
-        }
-      }
+      return result
     } else {
       iterator.jump(time)
       return {
         matched: true,
-        value: [],
+        value: undefined,
       }
     }
   })
@@ -99,22 +83,9 @@ export const group = (...expected) =>
     const results = []
     for (const element of expected) {
       const matcher = asMatcher(element)
-      let result
-      if (matcher[iteratorMatcher]) {
-        result = matcher(iterator)
-      } else {
-        const { value, done } = iterator.next()
-        if (done) {
-          return unmatched
-        }
-        result = matcher(value)
-      }
+      const result = matcher(iterator)
       if (result.matched) {
-        if (matcher[iteratorMatcher]) {
-          values.push(...result.value)
-        } else {
-          values.push(result.value)
-        }
+        values.push(result.value)
         results.push(result)
       } else {
         return unmatched
@@ -132,60 +103,27 @@ export const some = (expected) =>
     const values = []
     const results = []
     const matcher = asMatcher(expected)
-    if (matcher[iteratorMatcher]) {
-      while (true) {
-        const time = iterator.now
-        const result = matcher(iterator)
-        if (result.matched) {
-          if (result.value.length === 0) {
-            throw new Error(
-              'some will infinite loop if expected matches but consumes no elements. some of maybe is not possible'
-            )
-          }
-          values.push(...result.value)
-          results.push(result)
-        } else {
-          if (results.length === 0) {
-            return unmatched
-          }
-          iterator.jump(time)
-          return {
-            matched: true,
-            value: values,
-            result: results,
-          }
+    while (true) {
+      const time = iterator.now
+      const result = matcher(iterator)
+      const end = iterator.now
+      if (result.matched) {
+        if (time === end) {
+          throw new Error(
+            'some will infinite loop if expected matches but consumes no elements. some of maybe is not possible'
+          )
         }
-      }
-    } else {
-      while (true) {
-        const time = iterator.now
-        const { value, done } = iterator.next()
-        if (done) {
-          if (results.length === 0) {
-            return unmatched
-          } else {
-            iterator.jump(time)
-            return {
-              matched: true,
-              value: values,
-              result: results,
-            }
-          }
+        values.push(result.value)
+        results.push(result)
+      } else {
+        if (results.length === 0) {
+          return unmatched
         }
-        const result = matcher(value)
-        if (result.matched) {
-          values.push(result.value)
-          results.push(result)
-        } else {
-          if (results.length === 0) {
-            return unmatched
-          }
-          iterator.jump(time)
-          return {
-            matched: true,
-            value: values,
-            result: results,
-          }
+        iterator.jump(time)
+        return {
+          matched: true,
+          value: values,
+          result: results,
         }
       }
     }
@@ -199,7 +137,7 @@ export const rest = IteratorMatcher((iterator) => {
 })
 
 export const matchArray = (expected) =>
-  Matcher((value) => {
+  ValueMatcher((value) => {
     const valueIsANumberBooleanStringOrFunction = typeof value !== 'object'
     if (
       value === undefined ||
@@ -219,36 +157,23 @@ export const matchArray = (expected) =>
       }
     }
     const iterator = TimeJumpIterator(value[Symbol.iterator]())
-    const readValues = []
+    iterator[internalIterator] = iterator
+    const values = []
     const results = []
     for (const element of expected) {
       const matcher = asMatcher(element)
-      if (matcher[iteratorMatcher]) {
-        const result = matcher(iterator)
-        if (result.matched) {
-          results.push(result)
-          readValues.push(...result.value)
-          continue
-        }
-        return unmatched
-      } else {
-        const { value: iteratorValue, done } = iterator.next()
-        if (done) {
-          return unmatched
-        }
-        const result = matcher(iteratorValue)
-        if (result.matched) {
-          results.push(result)
-          readValues.push(iteratorValue)
-          continue
-        }
-        return unmatched
+      const result = matcher(iterator)
+      if (result.matched) {
+        values.push(result.value)
+        results.push(result)
+        continue
       }
+      return unmatched
     }
     if (iterator.next().done) {
       return {
         matched: true,
-        value: readValues,
+        value: values,
         result: results,
       }
     } else {
@@ -257,7 +182,7 @@ export const matchArray = (expected) =>
   })
 
 export const matchObject = (expected) =>
-  Matcher((value) => {
+  ValueMatcher((value) => {
     if (expected === undefined) {
       if (typeof value === 'object') {
         return {
@@ -270,6 +195,7 @@ export const matchObject = (expected) =>
       }
     }
     let restKey
+    const values = {}
     const results = {}
     const matchedByKey = {}
     const unmatchedKeys = []
@@ -280,8 +206,9 @@ export const matchObject = (expected) =>
         continue
       }
 
-      if (key in value) {
+      if (value !== undefined) {
         results[key] = matcher(value[key])
+        values[key] = results[key].value
       }
       if (!results?.[key]?.matched ?? false) {
         unmatchedKeys.push(key)
@@ -312,16 +239,17 @@ export const matchObject = (expected) =>
     }
     if (restKey) {
       results[restKey] = { matched: true, value: restValue }
+      values[restKey] = results[restKey].value
     }
     return {
       matched: true,
-      value,
+      value: values,
       result: results,
     }
   })
 
 export const matchPredicate = (predicate) =>
-  Matcher((value) =>
+  ValueMatcher((value) =>
     predicate(value)
       ? {
           matched: true,
@@ -331,7 +259,7 @@ export const matchPredicate = (predicate) =>
   )
 
 export const equals = (expected) =>
-  matchPredicate((value) => expected === undefined || expected === value)
+  matchPredicate((value) => expected === value)
 
 export const matchBoolean = (expected) =>
   matchPredicate(
@@ -364,8 +292,6 @@ export const matchString = (expected) =>
 
 export const any = matchPredicate(() => true)
 
-export const defined = matchPredicate((value) => value !== undefined)
-
 export const between = (lower, upper) =>
   matchPredicate(
     (value) => typeof value === 'number' && lower <= value && value < upper
@@ -384,7 +310,7 @@ export const lessThanEquals = (expected) =>
   matchPredicate((value) => typeof value === 'number' && expected >= value)
 
 export const matchRegExp = (expected) =>
-  Matcher((value) => {
+  ValueMatcher((value) => {
     if (typeof value === 'string' || value instanceof String) {
       const matchedRegExp = value.match(expected)
       if (matchedRegExp) {
@@ -408,7 +334,7 @@ export const matchRegExp = (expected) =>
   })
 
 export const not = (matchable) =>
-  Matcher((value) => {
+  ValueMatcher((value) => {
     const matcher = asMatcher(matchable)
     const result = matcher(value)
     if (!result.matched) {
@@ -420,26 +346,35 @@ export const not = (matchable) =>
     return unmatched
   })
 
+export const defined = not(equals(undefined))
+
 export const oneOf = (...matchables) =>
-  Matcher((value) => {
+  IteratorMatcher((iterator) => {
+    const time = iterator.now
     for (const matchable of matchables) {
       const matcher = asMatcher(matchable)
-      const result = matcher(value)
+      const result = matcher(iterator)
       if (result.matched) {
         return result
       }
+      iterator.jump(time)
     }
     return unmatched
   })
 
 export const allOf = (...matchables) =>
-  Matcher((value) => {
+  IteratorMatcher((iterator) => {
+    const time = iterator.now
+    const end = []
     const results = []
     for (const matchable of matchables) {
       const matcher = asMatcher(matchable)
-      const result = matcher(value)
+      iterator.jump(time)
+      const result = matcher(iterator)
+      end.push(iterator.now)
       results.push(result)
       if (!result.matched) {
+        iterator.jump(time)
         return {
           matched: false,
           expected: matchables,
@@ -448,9 +383,19 @@ export const allOf = (...matchables) =>
       }
     }
 
+    if (end.some((c) => c !== end[0])) {
+      iterator.jump(time)
+      return unmatched
+    }
+    const values = []
+    iterator.jump(time)
+    for (let i = time; i < end[0]; i++) {
+      values.push(iterator.next().value)
+    }
+
     return {
       matched: true,
-      value,
+      value: values.length <= 1 ? values[0] : values,
       result: results,
     }
   })

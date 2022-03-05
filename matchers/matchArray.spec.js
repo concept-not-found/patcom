@@ -1,6 +1,6 @@
 import { expectMatched, expectUnmatched } from './test-utils.js'
 
-import { matchArray, maybe, group, some, rest } from './index.js'
+import { matchArray, maybe, group, some, rest, any } from './index.js'
 
 describe('matchArray', () => {
   test('empty expected matches any array', () => {
@@ -23,11 +23,12 @@ describe('matchArray', () => {
     expect(result.value).toEqual([1, 2, 3])
   })
 
-  test('holes in expected are any', () => {
+  test('holes in expected are undefined', () => {
     const matcher = matchArray([1, , 3])
-    const result = matcher([1, 2, 3])
+    const result = matcher([1, , 3])
     expectMatched(result)
-    expect(result.value).toEqual([1, 2, 3])
+    expect(result.value).toEqual([1, undefined, 3])
+    expectUnmatched(matcher([1, 2, 3]))
   })
 
   test('holes in value match undefined', () => {
@@ -35,6 +36,7 @@ describe('matchArray', () => {
     const result = matcher([1, , 3])
     expectMatched(result)
     expect(result.value).toEqual([1, undefined, 3])
+    expectUnmatched(matcher([1, 2, 3]))
   })
 
   test('unmatched when expected more elements', () => {
@@ -75,7 +77,7 @@ describe('matchArray', () => {
     const matcher = matchArray([1, rest])
     const result = matcher([1, 2, 3])
     expectMatched(result)
-    expect(result.value).toEqual([1, 2, 3])
+    expect(result.value).toEqual([1, [2, 3]])
     expect(result.result[1].value).toEqual([2, 3])
   })
 
@@ -83,7 +85,7 @@ describe('matchArray', () => {
     const matcher = matchArray([1, 2, 3, rest])
     const result = matcher([1, 2, 3])
     expectMatched(result)
-    expect(result.value).toEqual([1, 2, 3])
+    expect(result.value).toEqual([1, 2, 3, []])
     expect(result.result[3].value).toEqual([])
   })
 
@@ -120,7 +122,7 @@ describe('matchArray', () => {
     }
     const result = matcher(numbers())
     expectMatched(result)
-    expect(result.value).toEqual([1, 2, 3])
+    expect(result.value).toEqual([1, [2, 3]])
   })
 
   test('rest matches remaining iterator even if already complete match', () => {
@@ -132,7 +134,7 @@ describe('matchArray', () => {
     }
     const result = matcher(numbers())
     expectMatched(result)
-    expect(result.value).toEqual([1, 2, 3])
+    expect(result.value).toEqual([1, 2, 3, []])
   })
 
   test('unmatched iterator when expected more elements', () => {
@@ -182,24 +184,30 @@ describe('matchArray', () => {
   test('matched maybe is present in result', () => {
     const matcher = matchArray([maybe(1)])
     const result = matcher([1])
-    expectMatched(result)
-    expect(result.result[0]).toEqual({
+    expect(result).toEqual({
       matched: true,
       value: [1],
-      result: {
-        matched: true,
-        value: 1,
-      },
+      result: [
+        {
+          matched: true,
+          value: 1,
+        },
+      ],
     })
   })
 
-  test('matched maybe is present in result as empty array when element is not present', () => {
+  test('matched maybe is present as undefined when element is not present', () => {
     const matcher = matchArray([maybe(1)])
     const result = matcher([])
-    expectMatched(result)
-    expect(result.result[0]).toEqual({
+    expect(result).toEqual({
       matched: true,
-      value: [],
+      value: [undefined],
+      result: [
+        {
+          matched: true,
+          value: undefined,
+        },
+      ],
     })
   })
 
