@@ -139,7 +139,7 @@ match (list) (
 
   when (
     [defined, rest],
-    ([head, ...tail]) => `multiple items`
+    ([head, tail]) => `multiple items`
   )
 )
 ```
@@ -387,7 +387,7 @@ type Unmatched = {
 
 For more advanced use cases the `IteratorMatcher` helper function is used to create `Matcher`s that directly handle the internals of `TimeJumpIterator` but do not need to be concerned with a plain `value` being passed in.
 
-The `TimeJumpIterator` works like a normal `Iterator`, except it has the ability to jump back to a previously state. This is useful for `Matcher`s that require lookahead. For example the [`maybe`](#maybe) matcher would remember the starting position with `const start = iterator.now`, readahead to see if there is a match, and if it fails, jumps the iterator back using `iterator.jump(start)`. This prevents the iterator from being consumed. If the iterator is consumed during the readahead and left untouched on unmatched, subsequent matchers will fail to match as they would never see the value that were consumed by readahead.
+The `TimeJumpIterator` works like a normal `Iterator`, except it has the ability to jump back to a previously state. This is useful for `Matcher`s that require lookahead. For example the [`maybe`](#maybe) matcher would remember the starting position with `const start = iterator.now`, lookahead to see if there is a match, and if it fails, jumps the iterator back using `iterator.jump(start)`. This prevents the iterator from being consumed. If the iterator is consumed during the lookahead and left untouched on unmatched, subsequent matchers will fail to match as they would never see the value that were consumed by lookahead.
 
 <!-- prettier-ignore -->
 ```ts
@@ -628,7 +628,7 @@ Builders to create a `Matcher`.
 
   <!-- prettier-ignore -->
   ```ts
-  function matchPredicate<T>(predicate: () => Boolean): Matcher<T>
+  function matchPredicate<T>(predicate: (value: any) => Boolean): Matcher<T>
   ```
 
   Matches value that satisfies the predicate, or in other words `predicate(value) === true`
@@ -869,10 +869,7 @@ Creates a `Matcher` from other `Matcher`s.
     matched: true,
     value: ['alice', 'bob'],
     result: [
-      {
-        matched: true,
-        value: 'alice'
-      },
+      { matched: true, value: 'alice' },
       { matched: true, value: 'bob' }
     ]
   }
@@ -1610,7 +1607,7 @@ Creates a `Matcher` from other `Matcher`s.
   ): Matcher<R>
   ```
 
-  Matches if `expected` matches and satifies all the `guards`, then matched value is transformed with `valueMapper`. `guards` are optional. Primative `expected` are wrapped with their corresponding `Matcher` builder. Second parameter to `valueMapper` is the `Matched` `Result`. See [`matchRegExp`](#matchregexp), [`matchArray`](#matcharray), [`matchObject`](#matchobject), [`rest`](#rest), and [`allOf`](#allof) for extra fields on `Matched`.
+  Matches if `expected` matches and satisfies all the `guards`, then matched value is transformed with `valueMapper`. `guards` are optional. Primative `expected` are wrapped with their corresponding `Matcher` builder. Second parameter to `valueMapper` is the `Matched` `Result`. See [`matchRegExp`](#matchregexp), [`matchArray`](#matcharray), [`matchObject`](#matchobject), [`group`](#group), [`some`](#some) and [`allOf`](#allof) for extra fields on `Matched`.
   <details>
   <summary>Example</summary>
 
@@ -1667,7 +1664,7 @@ Creates a `Matcher` from other `Matcher`s.
   ): Matcher<R>
   ```
 
-  Matches if satifies all the `guards`, then value is transformed with `valueMapper`. `guards` are optional. Second parameter to `valueMapper` is the `Matched` `Result`. See [`matchRegExp`](#matchregexp), [`matchArray`](#matcharray), [`matchObject`](#matchobject) and [`allOf`](#allof) for extra fields on `Matched`.
+  Matches if satisfies all the `guards`, then value is transformed with `valueMapper`. `guards` are optional. Second parameter to `valueMapper` is the `Matched` `Result`. See [`matchRegExp`](#matchregexp), [`matchArray`](#matcharray), [`matchObject`](#matchobject), [`group`](#group), [`some`](#some) and [`allOf`](#allof) for extra fields on `Matched`.
   <details>
   <summary>Example</summary>
 
