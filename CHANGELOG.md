@@ -1,3 +1,10 @@
+# 1.1.0
+
+### Features
+
+- added new `asInternalIterator` API to be able to pass existing iterators directly to `Matcher`s
+- upgraded `not` matcher to be an `InteratorMatcher` which allows it to interoperate with other `Matcher`s
+
 # 1.0.0
 
 ### Breaking changes
