@@ -1,8 +1,8 @@
 # patcom
 
-`patcom` is pattern matching JavaScript library. Build pattern matchers from simpler smaller matchers.
+`patcom` is a pattern-matching JavaScript library. Build pattern matchers from simpler, smaller matchers.
 
-> Pattern matching is a declarative programming. The code matches the shape of the data.
+> Pattern-matching uses declarative programming. The code matches the shape of the data.
 
 ```sh
 npm install --save patcom
@@ -24,7 +24,7 @@ Let's say we have objects that represent a `Student` or a `Teacher`.
   }
 ```
 
-Using `patcom` we can match a `person` by their `role` to form a greeting.
+Using `patcom`, we can match a `person` by their `role` to form a greeting.
 
 <!-- prettier-ignore -->
 ```js
@@ -147,7 +147,7 @@ match (list) (
 <details>
 <summary>What is <code>rest</code>?</summary>
 
-[`rest`](#rest) is an [`IteratorMatcher`](#core-concept) used within array and object patterns. Array and objects are complete matches and the `rest` pattern consumes all remaining values.
+[`rest`](#rest) is an [`IteratorMatcher`](#core-concept) used within array and object patterns. Array and objects are complete matches, and the `rest` pattern consumes all remaining values.
 
 </details>
 
@@ -216,7 +216,7 @@ match (complex) (
 
 ### Matchers are extractable
 
-From the previous example, complex patterns can be broken down to simpler reusable matchers.
+From the previous example, complex patterns can be broken down into simpler reusable matchers.
 
 <!-- prettier-ignore -->
 ```js
@@ -287,7 +287,7 @@ const speakMatcher = oneOf (
 )
 ```
 
-Now upon unrecognized animals, whereas `speak` previously returned `undefined`, `speakMatcher` now returns `{ matched: false }`. This allows us to combine `speakMatcher` with other patterns.
+Now upon unrecognized animals, whereas `speak` previously returned `undefined`, `speakMatcher` returns `{ matched: false }`. This allows us to combine `speakMatcher` with other patterns.
 
 <!-- prettier-ignore -->
 ```js
@@ -303,7 +303,7 @@ match (animal) (
 )
 ```
 
-Everything except for `match` is actually a [`Matcher`](#core-concept), including `when` and `otherwise`. Primative value and data types are automatically converted to a corresponding matcher.
+Everything except for `match` is actually a [`Matcher`](#core-concept), including `when` and `otherwise`. Primitive value and data types are automatically converted to a corresponding matcher.
 
 <!-- prettier-ignore -->
 ```js
@@ -385,9 +385,9 @@ type Unmatched = {
 }
 ```
 
-For more advanced use cases the `IteratorMatcher` helper function is used to create `Matcher`s that directly handle the internals of `TimeJumpIterator` but do not need to be concerned with a plain `value` being passed in.
+For more advanced use cases, the `IteratorMatcher` helper function is used to create `Matcher`s that directly handle the internals of `TimeJumpIterator` but do not need to be concerned with a plain `value` being passed in.
 
-The `TimeJumpIterator` works like a normal `Iterator`, except it has the ability to jump back to a previously state. This is useful for `Matcher`s that require lookahead. For example the [`maybe`](#maybe) matcher would remember the starting position with `const start = iterator.now`, lookahead to see if there is a match, and if it fails, jumps the iterator back using `iterator.jump(start)`. This prevents the iterator from being consumed. If the iterator is consumed during the lookahead and left untouched on unmatched, subsequent matchers will fail to match as they would never see the value that were consumed by lookahead.
+The `TimeJumpIterator` works like a normal `Iterator`, except it can jump back to a previous state. This is useful for `Matcher`s that require lookahead. For example, the [`maybe`](#maybe) matcher would remember the starting position with `const start = iterator.now`, look ahead to see if there is a match, and if it fails, jumps the iterator back using `iterator.jump(start)`. This prevents the iterator from being consumed. If the iterator is consumed during the lookahead and left untouched on unmatched, subsequent matchers will fail to match as they would never see the values that were consumed by the lookahead.
 
 <!-- prettier-ignore -->
 ```ts
@@ -977,7 +977,7 @@ Creates a `Matcher` from other `Matcher`s.
   function matchObject<T>(expected?: T): Matcher<T>
   ```
 
-  Matches `expected` enumerable object properties completely or partially with [`rest`](#rest) matcher. Primitives in `expected` are wrapped with their corresponding `Matcher` builder. Rest of properties can be found on the `value` with the rest key. Matches any defined object if `expected` is not provided.
+  Matches `expected` enumerable object properties completely or partially with [`rest`](#rest) matcher. Primitives in `expected` are wrapped with their corresponding `Matcher` builder. The rest of properties can be found on the `value` with the rest key. Matches any defined object if `expected` is not provided.
   <details>
   <summary>Example</summary>
 
@@ -1201,7 +1201,7 @@ Creates a `Matcher` from other `Matcher`s.
   function maybe<T>(expected: T): Matcher<T | undefined>
   ```
 
-  An [`IteratorMatcher`](#core-concept) that consumes an element in the array if it matches `expected`, otherwise does nothing. The unmatched element can be consumed by the next matcher. Similar to regular expression `?` operator.
+  An [`IteratorMatcher`](#core-concept) that consumes an element in the array if it matches `expected`, otherwise does nothing. The unmatched element can be consumed by the next matcher. Similar to the regular expression `?` operator.
   <details>
   <summary>Example</summary>
 
@@ -1452,7 +1452,7 @@ Creates a `Matcher` from other `Matcher`s.
   function some<T>(expected: T): Matcher<T[]>
   ```
 
-  An [`IteratorMatcher`](#core-concept) that consumes all consecutive element matching `expected` in the array until it reaches the end or encounters an unmatched element. The unmatched element can be consumed by the next matcher. At least one element must match. Similar to regular expression `+` operator. **`some` does not compose with matchers that consume nothing, such as `maybe`**. Attempting to compose with `maybe` will throw an error as it would otherwise lead to an infinite loop.
+  An [`IteratorMatcher`](#core-concept) consumes all consecutive elements matching `expected` in the array until it reaches the end or encounters an unmatched element. The next matcher can consume the unmatched element. At least one element must match. Similar to regular expression `+` operator. **`some` does not compose with matchers that consume nothing, such as `maybe`**. Attempting to compose with `maybe` will throw an error as it would otherwise lead to an infinite loop.
   <details>
   <summary>Example</summary>
 
@@ -1725,7 +1725,7 @@ Consumes `Matcher`s to produce a value.
   const match<T, R>: (value: T) => (...clauses: Matcher<R>) => R | undefined
   ```
 
-  Returns a matched value for the first clause that matches, or `undefined` if all are unmatched. `match` is to be used as a top level expression and is not composable. To create a matcher composed of clauses use [`oneOf`](#oneof).
+  Returns a matched value for the first clause that matches, or `undefined` if all are unmatched. `match` is to be used as a top-level expression and is not composable. To create a matcher composed of clauses use [`oneOf`](#oneof).
   <details>
   <summary>Example</summary>
 
@@ -1765,19 +1765,19 @@ Consumes `Matcher`s to produce a value.
 
 ## What about [TC39 pattern matching proposal](https://github.com/tc39/proposal-pattern-matching)?
 
-`patcom` is does not implement the semantics of TC39 pattern matching proposal. However, `patcom` was inspired from TC39 pattern matching proposal and in-fact has feature parity. As `patcom` is a JavaScript library, it cannot introduce any new syntax, but the syntax remains relatively similar.
+`patcom` does not implement the semantics of TC39 pattern matching proposal. However, `patcom` was inspired by the TC39 pattern matching proposal and, in-fact, has feature parity. As `patcom` is a JavaScript library, it cannot introduce any new syntax, but the syntax remains relatively similar.
 
-### Comparision of TC39 pattern matching proposal on left to `patcom` on right
+### Comparision of TC39 pattern matching proposal on the left to `patcom` on the right
 
 ![tc39 comparision](https://cdn.jsdelivr.net/gh/concept-not-found/patcom/tc39-proposal-pattern-matching/diff.png)
 
 ### Differences
 
-The most notable different is `patcom` implemented [enumerable object properties](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Enumerability_and_ownership_of_properties) matching, where as TC39 pattern matching proposal implements partial object matching. See [tc39/proposal-pattern-matching#243](https://github.com/tc39/proposal-pattern-matching/issues/243). The [`rest`](#rest) matcher can be used to achieve partial object matching.
+The most notable difference is `patcom` implemented [enumerable object properties](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Enumerability_and_ownership_of_properties) matching, whereas TC39 pattern matching proposal implements partial object matching. See [tc39/proposal-pattern-matching#243](https://github.com/tc39/proposal-pattern-matching/issues/243). The [`rest`](#rest) matcher can be used to achieve partial object matching.
 
-`patcom` also handles holes in arrays differently. Holes in arrays in TC39 pattern matching proposal will match anything, where as `patcom` uses the more literial meaning of `undefined` as one would expect with holes in arrays defined in standard JavaScript. The [`any`](#any) matcher must be explicity used if one desires to match anything for a specific array position.
+`patcom` also handles holes in arrays differently. Holes in arrays in TC39 pattern matching proposal will match anything, whereas `patcom` uses the more literal meaning of `undefined` as one would expect with holes in arrays defined in standard JavaScript. The [`any`](#any) matcher must be explicitly used if one desires to match anything for a specific array position.
 
-Since `patcom` had to separate the pattern matching from destructuring, enumerable object properties matching is the most sensible. Syntactically separation of the pattern from destructuring is the biggest difference.
+Since `patcom` had to separate the pattern matching from destructuring, enumerable object properties matching is the most sensible. Syntactically separation of the pattern from destructuring is the most significant difference.
 
 #### TC39 pattern matching proposal `when` syntax shape
 
@@ -1804,7 +1804,7 @@ when (
 
 #### TC39 pattern matching proposal `and` combinator + `or` combinator
 
-Note the usage of `and` in this example is purely to capture the match and assign it to `dir`.
+Note that the usage of `and` in this example is purely to capture the match and assign it to `dir`.
 
 <!-- prettier-ignore -->
 ```js
@@ -1816,7 +1816,7 @@ when (
 
 #### `patcom` `oneOf` matcher + destructuring
 
-Assignment to `dir` separated from pattern.
+Assignment to `dir` separated from the pattern.
 
 <!-- prettier-ignore -->
 ```js
@@ -1835,11 +1835,11 @@ Additional consequence of the separating the pattern from destructuring is `patc
 
 Another difference is TC39 pattern matching proposal caches iterators and object property accesses. This has been implemented in `patcom` as a different variation of `match`, which is powered by `cachingOneOf`.
 
-To see a full comparsion with TC39 pattern matching proposal and unit tests to prove full feature parity, see [tc39-proposal-pattern-matching folder](https://github.com/concept-not-found/patcom/tree/master/tc39-proposal-pattern-matching).
+To see a complete comparison with TC39 pattern matching proposal and unit tests to prove full feature parity, see [tc39-proposal-pattern-matching folder](https://github.com/concept-not-found/patcom/tree/master/tc39-proposal-pattern-matching).
 
 ## What about [`match-iz`](https://github.com/shuckster/match-iz)?
 
-`match-iz` is similarly insprired by TC39 pattern matching proposal has has many similaries to `patcom`. However, `match-iz` is not feature complete to TC39 pattern matching proposal, most notably missing is:
+`match-iz` is similarly inspired by TC39 pattern matching proposal has many similarities to `patcom`. However, `match-iz` is not feature complete to TC39 pattern matching proposal, most notably missing is:
 
 - when guards
 - caching iterators and object property accesses
@@ -1848,14 +1848,14 @@ To see a full comparsion with TC39 pattern matching proposal and unit tests to p
 
 ## Contributions welcome
 
-The following is a non-exhaustive list of features which could be implemented in the feature
+The following is a non-exhaustive list of features that could be implemented in the future:
 
 - more unit testing
 - better documentation
   - executable examples
-- test that extract and execute samples out of documentation
+- tests that extract and execute samples out of documentation
 - richer set of matchers
-  - as this library exports modules, the size of the npm package does not matter if consumed by a tree shaking bundler. this means matchers of any size will be accepted as long as all matchers can be organized well as a cohesive set
+  - as this library exports modules, the size of the npm package does not matter if consumed by a tree shaking bundler. This means matchers of any size will be accepted as long as all matchers can be organized well as a cohesive set
   - [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) matcher
   - [Temporal](https://github.com/tc39/proposal-temporal) matchers
   - [Typed array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects#indexed_collections) matchers
@@ -1872,4 +1872,4 @@ The following is a non-exhaustive list of features which could be implemented in
 
 ## What does `patcom` mean?
 
-`patcom` is short for pattern combinator, as `patcom` the same concept as [parser combinator](https://en.wikipedia.org/wiki/Parser_combinator)
+`patcom` is short for pattern combinator, as `patcom` is the same concept as [parser combinator](https://en.wikipedia.org/wiki/Parser_combinator)
